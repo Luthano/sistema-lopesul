@@ -51,6 +51,7 @@ function nomeTransportadora(oferta) {
   const dominio = String(oferta?.dominio || '').trim().toUpperCase()
   if (dominio === 'JEU') return 'Jetlu'
   if (dominio === 'LSU') return 'Lopesul'
+  if (dominio === 'ENR') return 'Envia Rápido'
 
   const bruto = String(oferta?.nome || oferta?.nomeTransportadora || '').trim()
   if (bruto && !/^ssw\b/i.test(bruto) && bruto !== '—' && bruto !== '-') {
@@ -121,7 +122,7 @@ function OfertaCard({
           </div>
           {oferta.cnpjPagador ? (
             <div>
-              <small>Pagador nesta tabela</small>
+              <small>Pagador</small>
               <strong>{oferta.cnpjPagador}</strong>
             </div>
           ) : null}
