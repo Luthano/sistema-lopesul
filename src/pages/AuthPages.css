@@ -16,13 +16,14 @@
 
 .auth-card {
   width: min(440px, 100%);
+  margin-inline: auto;
   display: grid;
   gap: 14px;
 }
 
 .auth-kicker,
 .historico-wrap h2 {
-  color: #062855;
+  color: var(--brand-deep);
   font-size: 0.82rem;
   font-weight: 800;
   letter-spacing: 0.04em;
@@ -34,7 +35,7 @@
 .historico-head h1,
 .historico-wrap h2 {
   font-family: var(--font-display, inherit);
-  color: #062855;
+  color: var(--brand-deep);
   margin: 0;
   font-size: 1.15rem;
   font-weight: 700;
@@ -90,7 +91,7 @@
 }
 
 .auth-submit {
-  background: #f80016;
+  background: var(--brand);
   color: #fff;
   border-radius: 999px;
   padding: 12px 18px;
@@ -105,7 +106,7 @@
 
 .auth-switch,
 .auth-back {
-  color: #062855;
+  color: var(--brand-deep);
   font-weight: 600;
   cursor: pointer;
 }
@@ -148,7 +149,7 @@
 }
 
 .historico-list strong {
-  color: #062855;
+  color: var(--brand-deep);
 }
 
 @media (max-width: 720px) {

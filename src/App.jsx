@@ -73,7 +73,8 @@ function AppHeader({ scrolled }) {
               className={active ? 'tab is-active' : 'tab'}
               aria-current={active ? 'page' : undefined}
             >
-              {tab.label}
+              <span className="tab-label-full">{tab.label}</span>
+              <span className="tab-label-short">{tab.short}</span>
             </Link>
           )
         })}

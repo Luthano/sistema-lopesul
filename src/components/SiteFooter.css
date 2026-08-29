@@ -1,7 +1,7 @@
 .site-footer {
-  background: #041a36;
+  background: var(--brand-deeper);
   color: #fff;
-  padding: 48px 0 24px;
+  padding: 48px 0 calc(24px + env(safe-area-inset-bottom, 0px));
   margin-top: auto;
 }
 
@@ -64,11 +64,11 @@
 }
 
 .site-footer-col a:hover {
-  color: #ffb3ba;
+  color: var(--accent);
 }
 
 .site-footer-col a:focus-visible {
-  outline: 3px solid #ffb3ba;
+  outline: 3px solid var(--accent);
   outline-offset: 3px;
 }
 

@@ -13,8 +13,8 @@
 }
 
 .cidades-page {
-  --brand-red: #f80016;
-  --brand-navy: #062855;
+  --brand-red: var(--brand);
+  --brand-navy: var(--brand-deep);
   --brand-ink: #1a1c27;
   --brand-muted: #5c6470;
   color: var(--brand-ink);
@@ -143,7 +143,7 @@
   align-items: center;
   justify-content: center;
   padding: 18px;
-  background: rgba(6, 40, 85, 0.42);
+  background: rgba(9, 61, 144, 0.42);
 }
 
 .cidades-popup {
@@ -155,7 +155,7 @@
   padding: 18px;
   border-radius: 16px;
   background: #fff;
-  box-shadow: 0 24px 60px rgba(6, 40, 85, 0.28);
+  box-shadow: 0 24px 60px rgba(9, 61, 144, 0.28);
 }
 
 .cidades-popup-head {
@@ -291,7 +291,7 @@
   font-size: 0.84rem;
   line-height: 1.2;
   white-space: nowrap;
-  box-shadow: 0 8px 18px rgba(248, 0, 22, 0.28);
+  box-shadow: 0 8px 18px rgba(72, 213, 255, 0.28);
   cursor: pointer;
 }
 
@@ -404,7 +404,7 @@
 .cidades-status.is-redespacho {
   background: #eef3fb;
   border-color: #c5d4ef;
-  color: #062855;
+  color: var(--brand-deep);
 }
 
 .cidades-status.is-no {

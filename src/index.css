@@ -7,17 +7,20 @@
   --surface: #ffffff;
   --surface-2: #f6f8fb;
   --surface-3: #eef2f7;
-  --brand: #f80016;
-  --brand-deep: #062855;
-  --accent: #f80016;
-  --accent-soft: #ffe8ea;
+  --brand: #48d5ff;
+  --brand-hover: #3aaacc;
+  --brand-deep: #093d90;
+  --brand-deeper: #062456;
+  --accent: #e6fa00;
+  --accent-ink: #1a202c;
+  --accent-soft: #f9f79a;
   --ok: #1f7a4d;
   --ok-soft: #e6f6ee;
   --warn: #9a6b00;
   --warn-soft: #fff6e0;
   --danger: #a32020;
   --danger-soft: #fde8e8;
-  --shadow: 0 12px 30px rgba(6, 40, 85, 0.08);
+  --shadow: 0 12px 30px rgba(9, 61, 144, 0.1);
   --radius: 14px;
   --font-display: 'Roboto', Arial, Helvetica, sans-serif;
   --font-body: 'Roboto', Arial, Helvetica, sans-serif;
@@ -32,6 +35,7 @@
 html {
   scrollbar-gutter: stable;
   overflow-y: scroll;
+  overflow-x: clip;
 }
 
 html,
@@ -41,6 +45,7 @@ body,
 }
 
 body {
+  overflow-x: clip;
   font-family: var(--font-body);
   color: var(--ink);
   background: #fff;
@@ -51,6 +56,14 @@ input,
 select,
 textarea {
   font: inherit;
+}
+
+@media (max-width: 900px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
 }
 
 /*
@@ -107,7 +120,7 @@ a.button,
 .cidades-cta:hover:not(:disabled),
 .auth-submit:hover:not(:disabled),
 .veiculo-btn:hover:not(:disabled) {
-  box-shadow: 0 12px 26px rgba(248, 0, 22, 0.3);
+  box-shadow: 0 12px 26px rgba(72, 213, 255, 0.35);
 }
 
 .painel-section-cta.is-ghost:hover:not(:disabled),
@@ -123,7 +136,7 @@ a.button,
 }
 
 .painel-danger-btn:hover:not(:disabled) {
-  background-color: rgba(248, 0, 22, 0.06);
+  background-color: var(--danger-soft);
   transform: translateY(-1px);
 }
 

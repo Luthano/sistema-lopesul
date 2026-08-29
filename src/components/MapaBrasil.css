@@ -18,7 +18,7 @@
 }
 
 .mapa-brasil #svg-map path {
-  fill: #f80016;
+  fill: var(--brand);
 }
 
 .mapa-brasil #svg-map text {
@@ -34,8 +34,8 @@
 
 .mapa-brasil #svg-map a:hover path,
 .mapa-brasil #svg-map a.is-selected path {
-  fill: #062855 !important;
-  filter: drop-shadow(0 0 6px rgba(6, 40, 85, 0.25));
+  fill: var(--brand-deep) !important;
+  filter: drop-shadow(0 0 6px rgba(9, 61, 144, 0.25));
 }
 
 .mapa-brasil #svg-map .circle {

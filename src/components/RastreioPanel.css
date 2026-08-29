@@ -26,7 +26,7 @@
 }
 
 .rastreio-modes button.is-active {
-  background: #062855;
+  background: var(--brand-deep);
   color: #fff;
 }
 
@@ -43,7 +43,7 @@
 .rastreio-form span {
   font-size: 0.82rem;
   font-weight: 700;
-  color: #062855;
+  color: var(--brand-deep);
 }
 
 .rastreio-form input {
@@ -57,7 +57,7 @@
 }
 
 .rastreio-form input:focus {
-  outline: 2px solid #f80016;
+  outline: 2px solid var(--brand);
   outline-offset: 1px;
   border-color: transparent;
 }
@@ -78,12 +78,12 @@
   padding: 10px 16px;
   border: none;
   border-radius: 10px;
-  background: #f80016;
+  background: var(--brand);
   color: #fff;
   font-weight: 700;
   font-size: 0.88rem;
   cursor: pointer;
-  box-shadow: 0 8px 18px rgba(248, 0, 22, 0.22);
+  box-shadow: 0 8px 18px rgba(72, 213, 255, 0.28);
 }
 
 .rastreio-form .landing-cta:hover:not(:disabled) {
@@ -122,7 +122,7 @@
   margin: 0;
   font-family: var(--font-display);
   font-size: 1.15rem;
-  color: #062855;
+  color: var(--brand-deep);
 }
 
 .rastreio-result header span,
@@ -140,7 +140,7 @@
 
 .rastreio-parties strong {
   display: block;
-  color: #062855;
+  color: var(--brand-deep);
   font-size: 0.75rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -161,13 +161,13 @@
   padding: 14px 16px;
   border-radius: 14px;
   background: #f7f9fc;
-  border-left: 4px solid #f80016;
+  border-left: 4px solid var(--brand);
 }
 
 .rastreio-timeline strong {
   display: block;
   margin-bottom: 4px;
-  color: #062855;
+  color: var(--brand-deep);
 }
 
 .rastreio-timeline p {
@@ -185,7 +185,7 @@
 
 .rastreio-timeline time {
   font-weight: 700;
-  color: #062855;
+  color: var(--brand-deep);
 }
 
 @media (max-width: 720px) {

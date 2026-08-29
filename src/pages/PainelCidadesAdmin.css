@@ -82,7 +82,7 @@
 
 .cob-list-head strong {
   display: block;
-  color: var(--painel-deep, #062855);
+  color: var(--painel-deep, var(--brand-deep));
 }
 
 .cob-list-head span {
@@ -96,7 +96,7 @@
   padding: 7px 14px !important;
   font-size: 0.76rem !important;
   line-height: 1.2;
-  box-shadow: 0 4px 10px rgba(248, 0, 22, 0.14);
+  box-shadow: 0 4px 10px rgba(72, 213, 255, 0.14);
 }
 
 .painel-section-cta.cob-btn-compact.is-ghost {
@@ -144,7 +144,7 @@
 .cob-confirm h3 {
   margin: 0;
   font-size: 1.05rem;
-  color: #062855;
+  color: var(--brand-deep);
 }
 
 .cob-confirm p {
@@ -184,7 +184,7 @@
   border: 1px solid #e5e7eb;
   border-radius: 12px;
   background: #fff;
-  color: #062855;
+  color: var(--brand-deep);
   font-size: 0.92rem;
 }
 
@@ -199,7 +199,7 @@
 .cob-lista .cob-edit-open {
   border: 0;
   background: transparent;
-  color: #062855;
+  color: var(--brand-deep);
   font: inherit;
   font-size: 0.8rem;
   font-weight: 700;
@@ -227,7 +227,7 @@
 
 .painel-section-cta.is-ghost {
   background: #fff;
-  color: #062855;
+  color: var(--brand-deep);
   border: 1px solid #d7dde6;
   box-shadow: none;
 }

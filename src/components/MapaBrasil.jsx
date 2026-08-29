@@ -3,7 +3,7 @@ import mapaSvg from '../assets/mapa-brasil.svg?raw'
 import { UF_MAPA_HREF } from '../lib/ufsAtendidas'
 import './MapaBrasil.css'
 
-const COR_SELECIONADO = '#062855'
+const COR_SELECIONADO = '#093d90'
 const COR_CIRCLE_SELECIONADO = '#003399'
 
 function aplicarSelecao(root, selectedUf) {
