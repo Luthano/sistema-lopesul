@@ -82,7 +82,7 @@ function CadastrarVeiculo() {
           <p className="veiculo-kicker">Parceiros</p>
           <h1>Cadastrar veículo</h1>
           <p>
-            Informe marca, ano, modelo, cor e rotas. Com login Jetlu, você edita depois no painel; o
+            Informe marca, ano, modelo, cor e rotas. Com login Lopesul, você edita depois no painel; o
             master analisa e aprova.
           </p>
           {!user ? (
@@ -157,7 +157,7 @@ function CadastrarVeiculo() {
             <p className="veiculo-hint">
               {user
                 ? 'Usamos estes dados para retorno da equipe operacional.'
-                : 'Informe o e-mail que usará no login Jetlu para acompanhar depois.'}
+                : 'Informe o e-mail que usará no login Lopesul para acompanhar depois.'}
             </p>
             <div className="veiculo-grid">
               <label className="veiculo-span-2">

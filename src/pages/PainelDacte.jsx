@@ -282,7 +282,7 @@ function PainelDacte() {
             value={senha}
             onChange={(event) => setSenha(event.target.value)}
             autoComplete="off"
-            placeholder="Se a Jetlu forneceu senha"
+            placeholder="Se a Lopesul forneceu senha"
           />
         </label>
         <button type="submit" className="painel-section-cta" disabled={loading || !podeBuscar}>

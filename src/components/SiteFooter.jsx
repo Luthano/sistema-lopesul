@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { BRAND, mailtoComercial, mailtoOperacional } from '../lib/brand'
 import './SiteFooter.css'
 
 function SiteFooter() {
@@ -7,8 +8,8 @@ function SiteFooter() {
       <div className="site-footer-wrap">
         <div className="site-footer-grid">
           <div className="site-footer-brand">
-            <img src="/home/logo-jetlu.svg" alt="Jetlu" />
-            <p>A logística acelerada que faz acontecer.</p>
+            <img src={BRAND.logo} alt={BRAND.name} />
+            <p>{BRAND.tagline}</p>
           </div>
 
           <div className="site-footer-col">
@@ -22,16 +23,16 @@ function SiteFooter() {
 
           <div className="site-footer-col">
             <h3>Contato</h3>
-            <a href="mailto:comercial@jetlu.com.br">comercial@jetlu.com.br</a>
-            <a href="mailto:operacional@jetlu.com.br">operacional@jetlu.com.br</a>
-            <a href="https://jetlu.com.br" target="_blank" rel="noreferrer">
-              jetlu.com.br
+            <a href={mailtoComercial()}>{BRAND.emailComercial}</a>
+            <a href={mailtoOperacional()}>{BRAND.emailOperacional}</a>
+            <a href={BRAND.siteUrl} target="_blank" rel="noreferrer">
+              {BRAND.siteLabel}
             </a>
           </div>
         </div>
 
         <div className="site-footer-bottom">
-          <p>© {new Date().getFullYear()} Jetlu. Todos os direitos reservados.</p>
+          <p>© {new Date().getFullYear()} {BRAND.name}. Todos os direitos reservados.</p>
         </div>
       </div>
     </footer>

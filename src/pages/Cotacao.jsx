@@ -243,7 +243,7 @@ function Cotacao() {
         <section className="form-section cotacao-bloqueio">
           <h2>Acesso às cotações</h2>
           {isRejected ? (
-            <p>Sua conta foi recusada. Fale com o administrador Jetlu.</p>
+            <p>Sua conta foi recusada. Fale com o administrador Lopesul.</p>
           ) : (
             <p>
               {profileComplete

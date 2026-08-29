@@ -11,6 +11,7 @@ import Painel from './pages/Painel'
 import CadastrarVeiculo from './pages/CadastrarVeiculo'
 import HubLogistico from './pages/HubLogistico'
 import SiteFooter from './components/SiteFooter'
+import { BRAND } from './lib/brand'
 import './App.css'
 
 const TABS = [
@@ -65,7 +66,7 @@ function AppHeader({ scrolled }) {
   return (
     <header className={`app-header ${scrolled ? 'is-scrolled' : ''} ${menuOpen ? 'is-menu-open' : ''}`}>
       <Link to="/" className="app-brand">
-        <img className="app-brand-logo" src="/home/logo-jetlu.svg" alt="Jetlu" />
+        <img className="app-brand-logo" src={BRAND.logo} alt={BRAND.name} />
       </Link>
 
       <nav className="tabs tabs-desktop" aria-label="Navegação principal">

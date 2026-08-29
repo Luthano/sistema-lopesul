@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Reveal from '../components/Reveal'
+import { BRAND, mailtoComercial } from '../lib/brand'
 import './Home.css'
 import './HomeAnimations.css'
 import './HubLogistico.css'
 
 const STATS = [
-  { value: '900+', label: 'cidades atendidas na malha Jetlu' },
+  { value: '900+', label: 'cidades atendidas na malha Lopesul' },
   { value: '12', label: 'estados + DF com cobertura ativa' },
   { value: 'D+1', label: 'prazos ágeis em rotas estratégicas' },
   { value: '3', label: 'pilares: coleta, entrega e visão de negócio' },
@@ -30,7 +31,7 @@ const PILARES = [
   },
   {
     title: 'Operação acelerada',
-    text: 'Enquanto alguns planejam, a Jetlu faz: velocidade com controle e proximidade.',
+    text: 'Enquanto alguns planejam, a Lopesul faz: velocidade com controle e proximidade.',
     icon: '/home/foguete.svg',
   },
 ]
@@ -193,7 +194,7 @@ const PASSOS = [
   {
     step: '01',
     title: 'Crie sua conta',
-    text: 'Acesse o painel Jetlu e complete o cadastro para liberar cotação e histórico.',
+    text: 'Acesse o painel Lopesul e complete o cadastro para liberar cotação e histórico.',
   },
   {
     step: '02',
@@ -220,7 +221,7 @@ const PASSOS = [
 const MODULOS = [
   {
     title: 'Cotação',
-    text: 'Simule frete com Jetlu e parceiros em um só fluxo.',
+    text: 'Simule frete com a Lopesul e parceiros em um só fluxo.',
     to: '/cotacao',
     cta: 'Fazer cotação',
   },
@@ -238,7 +239,7 @@ const MODULOS = [
   },
   {
     title: 'Hub logístico',
-    text: 'Conheça a malha, o fluxo e os diferenciais da operação Jetlu.',
+    text: 'Conheça a malha, o fluxo e os diferenciais da operação Lopesul.',
     to: '/hub-logistico',
     cta: 'Abrir hub',
   },
@@ -256,11 +257,11 @@ function Home() {
         />
         <div className="landing-hero-overlay hub-hero-overlay" />
         <div className="landing-hero-content">
-          <img className="landing-hero-logo" src="/home/logo-jetlu.svg" alt="Jetlu" />
+          <img className="landing-hero-logo" src={BRAND.logo} alt={BRAND.name} />
           <h1>Logística acelerada, que faz acontecer.</h1>
           <p className="landing-hero-lead">
             Se sua empresa exige mais da logística — mais agilidade, mais controle, mais visão —
-            a Jetlu entrega.
+            a Lopesul entrega.
           </p>
           <div className="landing-hero-actions">
             <Link to="/cotacao" className="landing-cta">
@@ -276,8 +277,8 @@ function Home() {
       <section className="landing-section hub-problem">
         <div className="landing-wrap hub-problem-grid">
           <Reveal>
-            <p className="landing-eyebrow">Por que Jetlu</p>
-            <h2>Enquanto alguns planejam, a Jetlu faz</h2>
+            <p className="landing-eyebrow">Por que Lopesul</p>
+            <h2>Enquanto alguns planejam, a Lopesul faz</h2>
             <p className="landing-lead">
               Logística com visão de negócio: coleta ágil, entrega eficiente e uma malha em
               expansão para quem precisa de resultado real — não de promessa.
@@ -299,7 +300,7 @@ function Home() {
           <Reveal>
             <h2>Sua operação precisa de velocidade. Seu cliente, de previsibilidade.</h2>
             <p>
-              Cotação, cobertura, coleta e rastreio no ecossistema Jetlu — para reduzir atrito
+              Cotação, cobertura, coleta e rastreio no ecossistema Lopesul — para reduzir atrito
               e acelerar a resposta do seu time.
             </p>
           </Reveal>
@@ -317,7 +318,7 @@ function Home() {
             <p className="landing-eyebrow">Pilares</p>
             <h2>Logística acelerada em quatro frentes</h2>
             <p className="landing-lead">
-              Do primeiro contato à entrega, a Jetlu combina operação e tecnologia para
+              Do primeiro contato à entrega, a Lopesul combina operação e tecnologia para
               empresas que não podem perder tempo.
             </p>
           </Reveal>
@@ -336,13 +337,13 @@ function Home() {
       <section className="landing-section hub-story">
         <div className="landing-wrap hub-story-grid">
           <Reveal className="hub-story-visual">
-            <img src="/home/banner-sobre.png" alt="Operação Jetlu" />
+            <img src="/home/banner-sobre.png" alt="Operação Lopesul" />
           </Reveal>
           <Reveal delay={80} className="hub-story-copy">
             <p className="landing-eyebrow">Acelerados</p>
             <h2>Envios rápidos e seguros para todo o Brasil</h2>
             <p>
-              A Jetlu é sinônimo de eficiência e tecnologia no transporte de encomendas. Com
+              A Lopesul é sinônimo de eficiência e tecnologia no transporte de encomendas. Com
               operação inteligente e rede em expansão, oferecemos soluções sob medida para quem
               precisa de resultados reais.
             </p>
@@ -404,7 +405,7 @@ function Home() {
             <p className="landing-eyebrow">Plataforma</p>
             <h2>Tudo o que você precisa, no mesmo lugar</h2>
             <p className="landing-lead">
-              Cotação, rastreio, cobertura e Hub logístico — conectados à operação Jetlu.
+              Cotação, rastreio, cobertura e Hub logístico — conectados à operação Lopesul.
             </p>
           </Reveal>
           <div className="hub-modules-grid">
@@ -427,7 +428,7 @@ function Home() {
             <p className="landing-eyebrow">Como funciona</p>
             <h2>Do cadastro à entrega, em um fluxo claro</h2>
             <p className="landing-lead">
-              Comece pela plataforma e deixe a Jetlu cuidar da conexão logística.
+              Comece pela plataforma e deixe a Lopesul cuidar da conexão logística.
             </p>
           </Reveal>
           <ol className="hub-steps">
@@ -457,11 +458,10 @@ function Home() {
           <p className="landing-eyebrow">Parcerias</p>
           <h2>Unimos forças com grandes transportadoras para oferecer a melhor cobertura logística.</h2>
           <p className="landing-lead">
-            A Jetlu mantém parcerias com transportadoras confiáveis como Lopesul e Envia Rápido,
+            A Lopesul mantém parcerias com transportadoras confiáveis como a Envia Rápido,
             que conectam rotas estratégicas ao nosso sistema logístico.
           </p>
           <div className="landing-partner-logos">
-            <img src="/home/logo-lopesul.png" alt="Lopesul" />
             <img src="/home/logo-envia-rapido.png" alt="Envia Rápido" />
           </div>
         </Reveal>
@@ -471,17 +471,17 @@ function Home() {
         <div className="landing-wrap">
           <Reveal className="landing-section-head">
             <p className="landing-eyebrow">Seja parte da operação</p>
-            <h2>Lucre com a Jetlu</h2>
+            <h2>Lucre com a Lopesul</h2>
           </Reveal>
           <div className="landing-join-grid">
             <a
-              href="mailto:comercial@jetlu.com.br?subject=Quero%20ser%20franqueado%20Jetlu"
+              href={mailtoComercial('Quero ser franqueado Lopesul')}
               className="landing-join-card landing-join-featured"
               style={{ backgroundImage: 'url(/home/banner-franqueado.png)' }}
             >
               <div>
                 <h3>Seja um franqueado</h3>
-                <p>Abra sua unidade Jetlu e tenha um negócio escalável com alta demanda.</p>
+                <p>Abra sua unidade Lopesul e tenha um negócio escalável com alta demanda.</p>
                 <span className="landing-join-btn">Quero ser um franqueado</span>
               </div>
             </a>
@@ -492,12 +492,12 @@ function Home() {
             >
               <div>
                 <h3>Cadastre seu veículo</h3>
-                <p>Transforme seu veículo em uma fonte de faturamento, sendo parceiro da Jetlu.</p>
+                <p>Transforme seu veículo em uma fonte de faturamento, sendo parceiro da Lopesul.</p>
                 <span className="landing-join-btn">Cadastrar veículo</span>
               </div>
             </Link>
             <a
-              href="mailto:comercial@jetlu.com.br?subject=Curriculo%20-%20Trabalhe%20na%20Jetlu"
+              href={mailtoComercial('Currículo - Trabalhe na Lopesul')}
               className="landing-join-card"
             >
               <img className="landing-join-mini-icon" src="/home/foguete.svg" alt="" />

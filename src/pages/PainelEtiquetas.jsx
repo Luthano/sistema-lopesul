@@ -374,7 +374,7 @@ function PainelEtiquetas() {
       setErro('Carregue ou selecione etiquetas para exportar.')
       return
     }
-    baixarTexto(gerarZplLote(alvo), `etiquetas-jetlu-${Date.now()}.zpl`)
+    baixarTexto(gerarZplLote(alvo), `etiquetas-lopesul-${Date.now()}.zpl`)
     setInfo(`${alvo.length} etiqueta(s) exportada(s) em .zpl.`)
     setPrintOpen(false)
   }
@@ -430,7 +430,7 @@ function PainelEtiquetas() {
       setErro('Permita pop-ups para imprimir as etiquetas.')
       return
     }
-    popup.document.write(`<!doctype html><html><head><title>Etiquetas Jetlu</title></head><body onload="window.print()">${html}</body></html>`)
+    popup.document.write(`<!doctype html><html><head><title>Etiquetas Lopesul</title></head><body onload="window.print()">${html}</body></html>`)
     popup.document.close()
     setPrintOpen(false)
   }

@@ -145,7 +145,7 @@ function RastreioPanel() {
                 value={senha}
                 onChange={(event) => setSenha(event.target.value)}
                 autoComplete="off"
-                placeholder="Se a Jetlu forneceu senha de consulta"
+                placeholder="Se a Lopesul forneceu senha de consulta"
               />
             </label>
           </>

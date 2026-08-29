@@ -94,7 +94,7 @@ export async function salvarVeiculoParceiro(req, body) {
     sucesso: true,
     mensagem: auth
       ? 'Cadastro vinculado à sua conta. Você pode editar no painel.'
-      : 'Cadastro enviado. Crie login na Jetlu com o mesmo e-mail para editar depois.',
+      : 'Cadastro enviado. Crie login na Lopesul com o mesmo e-mail para editar depois.',
     veiculo: data,
   }
 }

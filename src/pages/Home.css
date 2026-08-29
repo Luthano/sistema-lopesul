@@ -1,11 +1,11 @@
 .landing {
-  --jetlu-red: #f80016;
-  --jetlu-red-deep: #a6020c;
-  --jetlu-navy: #062855;
-  --jetlu-ink: #1a1c27;
-  --jetlu-muted: #5c6470;
+  --brand-red: #f80016;
+  --brand-red-deep: #a6020c;
+  --brand-navy: #062855;
+  --brand-ink: #1a1c27;
+  --brand-muted: #5c6470;
   flex: 1;
-  color: var(--jetlu-ink);
+  color: var(--brand-ink);
   background: #fff;
 }
 
@@ -59,6 +59,9 @@
   height: auto;
   margin-bottom: 18px;
   display: block;
+  background: #fff;
+  border-radius: 10px;
+  padding: 8px 12px;
 }
 
 .landing-hero h1 {
@@ -92,7 +95,7 @@
   padding: 12px 20px;
   border-radius: 10px;
   border: none;
-  background: var(--jetlu-red);
+  background: var(--brand-red);
   color: #fff;
   font-weight: 700;
   font-size: 0.92rem;
@@ -102,7 +105,7 @@
 }
 
 .landing-cta:hover {
-  background: var(--jetlu-red-deep);
+  background: var(--brand-red-deep);
   transform: translateY(-1px);
 }
 
@@ -118,7 +121,7 @@
 }
 
 .landing-cta-navy {
-  background: var(--jetlu-navy);
+  background: var(--brand-navy);
 }
 
 .landing-cta-navy:hover {
@@ -137,7 +140,7 @@
 .landing-eyebrow {
   display: inline-block;
   margin-bottom: 8px;
-  color: var(--jetlu-red);
+  color: var(--brand-red);
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -154,13 +157,13 @@
   letter-spacing: -0.02em;
   line-height: 1.25;
   margin: 0 0 10px;
-  color: var(--jetlu-navy);
+  color: var(--brand-navy);
   font-weight: 700;
 }
 
 .landing-lead {
   max-width: 54ch;
-  color: var(--jetlu-muted);
+  color: var(--brand-muted);
   line-height: 1.55;
   font-size: 0.95rem;
   margin: 0;
@@ -193,20 +196,20 @@
 
 .landing-pillar h3 {
   font-family: var(--font-display);
-  color: var(--jetlu-navy);
+  color: var(--brand-navy);
   font-size: 1.05rem;
   margin-bottom: 6px;
 }
 
 .landing-pillar p {
-  color: var(--jetlu-muted);
+  color: var(--brand-muted);
   line-height: 1.45;
   font-size: 0.92rem;
 }
 
 /* Diff */
 .landing-diff {
-  background: var(--jetlu-navy);
+  background: var(--brand-navy);
   color: #fff;
 }
 
@@ -337,7 +340,7 @@
 
 .home-solution-dot.is-active {
   width: 22px;
-  background: var(--jetlu-red, #f80016);
+  background: var(--brand-red, #f80016);
 }
 
 /* About */
@@ -353,7 +356,7 @@
 }
 
 .landing-about p {
-  color: var(--jetlu-muted);
+  color: var(--brand-muted);
   line-height: 1.6;
   margin-bottom: 12px;
   font-size: 0.95rem;
@@ -361,7 +364,7 @@
 }
 
 .landing-about-highlight {
-  color: var(--jetlu-navy) !important;
+  color: var(--brand-navy) !important;
   font-weight: 700;
   font-size: 1rem !important;
   text-align: left !important;
@@ -502,7 +505,7 @@
 }
 
 .landing-join-card:not(.landing-join-featured):not(.landing-join-photo) h3 {
-  color: var(--jetlu-navy);
+  color: var(--brand-navy);
 }
 
 .landing-join-card p {
@@ -512,7 +515,7 @@
 }
 
 .landing-join-card:not(.landing-join-featured):not(.landing-join-photo) p {
-  color: var(--jetlu-muted);
+  color: var(--brand-muted);
 }
 
 .landing-join-btn {
@@ -520,7 +523,7 @@
   width: fit-content;
   padding: 10px 14px;
   border-radius: 10px;
-  background: var(--jetlu-red);
+  background: var(--brand-red);
   color: #fff;
   font-weight: 700;
   font-size: 0.85rem;
@@ -528,8 +531,8 @@
 
 .landing-join-btn.ghost {
   background: transparent;
-  border: 1px solid var(--jetlu-navy);
-  color: var(--jetlu-navy);
+  border: 1px solid var(--brand-navy);
+  color: var(--brand-navy);
 }
 
 /* CTA banner */

@@ -1,11 +1,12 @@
 import { Link } from 'react-router-dom'
 import Reveal from '../components/Reveal'
+import { BRAND, mailtoComercial, mailtoOperacional } from '../lib/brand'
 import './Home.css'
 import './HomeAnimations.css'
 import './HubLogistico.css'
 
 const STATS = [
-  { value: '900+', label: 'cidades atendidas na malha Jetlu' },
+  { value: '900+', label: 'cidades atendidas na malha Lopesul' },
   { value: '12', label: 'estados + DF com cobertura ativa' },
   { value: 'D+1', label: 'prazos ágeis em rotas estratégicas' },
   { value: '3', label: 'redes parceiras integradas à operação' },
@@ -19,13 +20,13 @@ const PILARES = [
   },
   {
     title: 'Cotação e coleta no mesmo fluxo',
-    text: 'Simule frete, compare ofertas e solicite coleta sem sair da plataforma Jetlu.',
+    text: 'Simule frete, compare ofertas e solicite coleta sem sair da plataforma Lopesul.',
     icon: '/home/eficiencia.svg',
   },
   {
     title: 'Cobertura nacional conectada',
-    text: 'Alcance ampliado com Jetlu, Lopesul e Envia Rápido — rota direta ou redespacho.',
-    icon: '/home/icone-jetlu.svg',
+    text: 'Alcance ampliado com a Lopesul e a Envia Rápido — rota direta ou redespacho.',
+    icon: '/home/caminhao.svg',
   },
   {
     title: 'Previsibilidade de operação',
@@ -38,7 +39,7 @@ const PASSOS = [
   {
     step: '01',
     title: 'Integração',
-    text: 'Acesse a plataforma Jetlu, cadastre sua conta e libere cotação, rastreio e cobertura.',
+    text: 'Acesse a plataforma Lopesul, cadastre sua conta e libere cotação, rastreio e cobertura.',
   },
   {
     step: '02',
@@ -58,7 +59,7 @@ const PASSOS = [
   {
     step: '05',
     title: 'Entrega previsível',
-    text: 'Recebimento no destino com prazo alinhado à operação e suporte Jetlu.',
+    text: 'Recebimento no destino com prazo alinhado à operação e suporte Lopesul.',
   },
 ]
 
@@ -103,7 +104,7 @@ const PUBLICOS = [
 const MODULOS = [
   {
     title: 'Cotação multi-carrier',
-    text: 'Compare ofertas Jetlu e parceiros em uma única consulta, com frete e prazo claros.',
+    text: 'Compare ofertas da Lopesul e parceiros em uma única consulta, com frete e prazo claros.',
     to: '/cotacao',
     cta: 'Abrir cotação',
   },
@@ -121,7 +122,7 @@ const MODULOS = [
   },
   {
     title: 'Parceiros de frota',
-    text: 'Cadastre veículos e faça parte da rede que move a operação Jetlu.',
+    text: 'Cadastre veículos e faça parte da rede que move a operação Lopesul.',
     to: '/cadastrar-veiculo',
     cta: 'Cadastrar veículo',
   },
@@ -136,7 +137,7 @@ const IMPACTOS = [
 const DEPOIMENTOS = [
   {
     quote:
-      'Centralizar cotação e rastreio na Jetlu reduziu o tempo de resposta do nosso time comercial.',
+      'Centralizar cotação e rastreio na Lopesul reduziu o tempo de resposta do nosso time comercial.',
     author: 'Operação B2B',
     role: 'Distribuição interestadual',
   },
@@ -150,8 +151,8 @@ const DEPOIMENTOS = [
 
 const FAQ = [
   {
-    q: 'O que é o Hub logístico Jetlu?',
-    a: 'É a vitrine da malha Jetlu: cotação, coleta, rastreio, cobertura e parcerias em um fluxo pensado para logística fracionada interestadual.',
+    q: 'O que é o Hub logístico Lopesul?',
+    a: 'É a vitrine da malha Lopesul: cotação, coleta, rastreio, cobertura e parcerias em um fluxo pensado para logística fracionada interestadual.',
   },
   {
     q: 'Preciso ter conta para cotar?',
@@ -159,7 +160,7 @@ const FAQ = [
   },
   {
     q: 'Como funciona a cobertura com parceiros?',
-    a: 'A Jetlu consulta a malha própria e parceiras. Em alguns trechos a rota pode ser direta; em outros, redespacho entre redes.',
+    a: 'A Lopesul consulta a malha própria e parceiras. Em alguns trechos a rota pode ser direta; em outros, redespacho entre redes.',
   },
   {
     q: 'Consigo acompanhar a carga depois da cotação?',
@@ -167,7 +168,7 @@ const FAQ = [
   },
   {
     q: 'Como falo com o comercial?',
-    a: 'Pelo e-mail comercial@jetlu.com.br ou pelos canais de atendimento do painel e do site.',
+    a: `Pelo e-mail ${BRAND.emailComercial} ou pelos canais de atendimento do painel e do site.`,
   },
 ]
 
@@ -183,18 +184,18 @@ function HubLogistico() {
         />
         <div className="landing-hero-overlay hub-hero-overlay" />
         <div className="landing-hero-content">
-          <img className="landing-hero-logo" src="/home/logo-jetlu.svg" alt="Jetlu" />
+          <img className="landing-hero-logo" src={BRAND.logo} alt={BRAND.name} />
           <h1>Hub logístico interestadual com velocidade e controle</h1>
           <p className="landing-hero-lead">
             Conectamos cotação, coleta, rastreio e cobertura em uma malha pensada para
-            empresas que precisam de previsibilidade — com a operação Jetlu e parceiros
+            empresas que precisam de previsibilidade — com a operação Lopesul e parceiros
             estratégicos.
           </p>
           <div className="landing-hero-actions">
             <Link to="/cotacao" className="landing-cta">
               Fazer cotação
             </Link>
-            <a href="mailto:comercial@jetlu.com.br" className="landing-cta landing-cta-outline">
+            <a href={mailtoComercial()} className="landing-cta landing-cta-outline">
               Falar com o time
             </a>
           </div>
@@ -208,7 +209,7 @@ function HubLogistico() {
             <h2>O gargalo que custa caro na logística interestadual</h2>
             <p className="landing-lead">
               Empresas com alto volume enfrentam prazos longos, falta de rastreabilidade e
-              custo elevado. O Hub logístico Jetlu organiza a malha para reduzir esse atrito —
+              custo elevado. O Hub logístico Lopesul organiza a malha para reduzir esse atrito —
               do pedido à entrega.
             </p>
           </Reveal>
@@ -229,11 +230,11 @@ function HubLogistico() {
             <h2>Seu cliente espera previsibilidade. Sua operação precisa de velocidade.</h2>
             <p>
               Enquanto a logística tradicional alonga prazos e multiplica ferramentas, o Hub
-              Jetlu concentra cotação, cobertura e rastreio em um só lugar.
+              Lopesul concentra cotação, cobertura e rastreio em um só lugar.
             </p>
           </Reveal>
           <Reveal delay={80}>
-            <a href="mailto:comercial@jetlu.com.br" className="landing-cta">
+            <a href={mailtoComercial()} className="landing-cta">
               Falar com um especialista
             </a>
           </Reveal>
@@ -246,7 +247,7 @@ function HubLogistico() {
             <p className="landing-eyebrow">Malha conectada</p>
             <h2>Escala nacional com operação acelerada</h2>
             <p className="landing-lead">
-              A Jetlu orquestra rotas, parceiros e tecnologia para entregar logística
+              A Lopesul orquestra rotas, parceiros e tecnologia para entregar logística
               fracionada com mais previsibilidade.
             </p>
           </Reveal>
@@ -273,13 +274,13 @@ function HubLogistico() {
       <section className="landing-section hub-story">
         <div className="landing-wrap hub-story-grid">
           <Reveal className="hub-story-visual">
-            <img src="/home/banner-caixa.png" alt="Operação logística Jetlu" />
+            <img src="/home/banner-caixa.png" alt="Operação logística Lopesul" />
           </Reveal>
           <Reveal delay={80} className="hub-story-copy">
             <p className="landing-eyebrow">Operação real</p>
             <h2>Uma malha que une velocidade local e alcance interestadual</h2>
             <p>
-              Do Sul ao Centro-Oeste e além, a Jetlu conecta coletas ágeis, rotas estratégicas
+              Do Sul ao Centro-Oeste e além, a Lopesul conecta coletas ágeis, rotas estratégicas
               e parceiros de transporte para manter sua carga em movimento — com menos
               incerteza e mais controle.
             </p>
@@ -298,10 +299,10 @@ function HubLogistico() {
             <p className="landing-eyebrow light">Eficiência</p>
             <h2>Sua operação lucra. A malha trabalha a favor.</h2>
             <p>
-              Menos retrabalho, mais visibilidade e uma rede que já circula — com Jetlu no
+              Menos retrabalho, mais visibilidade e uma rede que já circula — com a Lopesul no
               centro da conexão logística.
             </p>
-            <a href="mailto:comercial@jetlu.com.br" className="landing-cta">
+            <a href={mailtoComercial()} className="landing-cta">
               Falar com um especialista
             </a>
           </Reveal>
@@ -367,7 +368,7 @@ function HubLogistico() {
             <p className="landing-eyebrow">Como funciona</p>
             <h2>Do pedido à entrega, em um fluxo claro</h2>
             <p className="landing-lead">
-              Integração rápida com a sua operação. A Jetlu cuida da conexão logística.
+              Integração rápida com a sua operação. A Lopesul cuida da conexão logística.
             </p>
           </Reveal>
           <ol className="hub-steps">
@@ -385,7 +386,7 @@ function HubLogistico() {
             <Link to="/cotacao" className="landing-cta">
               Começar agora
             </Link>
-            <a href="mailto:comercial@jetlu.com.br" className="landing-cta landing-cta-navy">
+            <a href={mailtoComercial()} className="landing-cta landing-cta-navy">
               Agendar conversa
             </a>
           </Reveal>
@@ -434,11 +435,10 @@ function HubLogistico() {
           <p className="landing-eyebrow">Parcerias</p>
           <h2>Hub conectado a transportadoras que ampliam sua cobertura</h2>
           <p className="landing-lead">
-            A Jetlu une forças com parceiros como Lopesul e Envia Rápido para oferecer
+            A Lopesul une forças com parceiros como a Envia Rápido para oferecer
             rotas estratégicas e alcance nacional.
           </p>
           <div className="landing-partner-logos">
-            <img src="/home/logo-lopesul.png" alt="Lopesul" />
             <img src="/home/logo-envia-rapido.png" alt="Envia Rápido" />
           </div>
         </Reveal>
@@ -471,18 +471,18 @@ function HubLogistico() {
             <p className="landing-eyebrow">Próximo passo</p>
             <h2>Vamos desenhar a melhor rota para o seu volume</h2>
             <p className="landing-lead">
-              Conte sobre origem, destino e frequência de embarque. O time Jetlu indica o
+              Conte sobre origem, destino e frequência de embarque. O time Lopesul indica o
               melhor caminho na malha.
             </p>
           </Reveal>
           <div className="hub-contact-cards">
-            <Reveal as="a" href="mailto:comercial@jetlu.com.br" className="hub-contact-card">
+            <Reveal as="a" href={mailtoComercial()} className="hub-contact-card">
               <strong>Comercial</strong>
-              <span>comercial@jetlu.com.br</span>
+              <span>{BRAND.emailComercial}</span>
             </Reveal>
-            <Reveal as="a" href="mailto:operacional@jetlu.com.br" delay={60} className="hub-contact-card">
+            <Reveal as="a" href={mailtoOperacional()} delay={60} className="hub-contact-card">
               <strong>Operacional</strong>
-              <span>operacional@jetlu.com.br</span>
+              <span>{BRAND.emailOperacional}</span>
             </Reveal>
             <Reveal as={Link} to="/painel" delay={120} className="hub-contact-card">
               <strong>Painel do cliente</strong>
@@ -500,7 +500,7 @@ function HubLogistico() {
             <Link to="/cotacao" className="landing-cta">
               Fazer cotação
             </Link>
-            <a href="mailto:comercial@jetlu.com.br" className="landing-cta landing-cta-outline">
+            <a href={mailtoComercial()} className="landing-cta landing-cta-outline">
               Falar com o time
             </a>
           </div>

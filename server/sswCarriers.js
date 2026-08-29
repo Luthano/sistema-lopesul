@@ -1,6 +1,6 @@
 /**
  * Transportadoras SSW (credenciais por domínio).
- * Configure no .env: SSW_CARRIERS=lopesul,jetlu
+ * Configure no .env: SSW_CARRIERS=lopesul,envia
  * e SSW_<ID>_DOMINIO / LOGIN / SENHA (opcional NOME).
  * Envia Rápido: adicione `envia` em SSW_CARRIERS + SSW_ENVIA_*.
  */

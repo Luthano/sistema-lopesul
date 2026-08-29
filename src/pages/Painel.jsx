@@ -12,6 +12,7 @@ import PainelEtiquetas from './PainelEtiquetas'
 import PainelCidadesAdmin from './PainelCidadesAdmin'
 import PainelVeiculos from './PainelVeiculos'
 import PainelCotacoes from './PainelCotacoes'
+import { BRAND, mailtoComercial, mailtoOperacional } from '../lib/brand'
 import './AuthPages.css'
 import './Painel.css'
 
@@ -135,7 +136,7 @@ function PainelInicio({
         </button>
         <button type="button" className="painel-card is-action" onClick={() => onNavigate('cidades')}>
           <strong>Cidades</strong>
-          <span>Consultar cobertura Jetlu</span>
+          <span>Consultar cobertura Lopesul</span>
         </button>
       </section>
 
@@ -186,7 +187,7 @@ function PainelCidades() {
     <div className="painel-section">
       <header className="painel-section-head">
         <div>
-          <h2>Cobertura Jetlu</h2>
+          <h2>Cobertura Lopesul</h2>
           <p>Estados com municípios cadastrados e consulta completa.</p>
         </div>
         <Link to="/cidades-atendidas" className="painel-section-cta">
@@ -211,7 +212,7 @@ function PainelAtendimento() {
     <div className="painel-section">
       <header className="painel-section-head">
         <div>
-          <h2>Fale com a Jetlu</h2>
+          <h2>Fale com a Lopesul</h2>
           <p>Canais para suporte comercial e operacional.</p>
         </div>
       </header>
@@ -220,18 +221,18 @@ function PainelAtendimento() {
         <article className="painel-support-card">
           <strong>Comercial</strong>
           <p>Cotações, tabelas e onboarding de clientes.</p>
-          <a href="mailto:comercial@jetlu.com.br">comercial@jetlu.com.br</a>
+          <a href={mailtoComercial()}>{BRAND.emailComercial}</a>
         </article>
         <article className="painel-support-card">
           <strong>Operacional</strong>
           <p>Coletas, prazos e ocorrências de transporte.</p>
-          <a href="mailto:operacional@jetlu.com.br">operacional@jetlu.com.br</a>
+          <a href={mailtoOperacional()}>{BRAND.emailOperacional}</a>
         </article>
         <article className="painel-support-card">
           <strong>Site</strong>
           <p>Conteúdo institucional e canais oficiais.</p>
-          <a href="https://jetlu.com.br" target="_blank" rel="noreferrer">
-            jetlu.com.br
+          <a href={BRAND.siteUrl} target="_blank" rel="noreferrer">
+            {BRAND.siteLabel}
           </a>
         </article>
       </div>
@@ -457,9 +458,9 @@ function Painel() {
 
       <aside className={`painel-sidebar ${menuOpen ? 'is-open' : ''}`}>
         <div className="painel-sidebar-brand">
-          <img src="/home/icone-jetlu.svg" alt="" />
+          <img src={BRAND.icon} alt="" />
           <div>
-            <strong>Jetlu</strong>
+            <strong>{BRAND.name}</strong>
             <span>{isMaster ? 'Painel master' : 'Painel do cliente'}</span>
           </div>
         </div>
@@ -525,7 +526,7 @@ function Painel() {
         <div className="painel-content">
           {isRejected && (
             <p className="auth-alert" role="alert">
-              Sua conta foi recusada. Fale com o administrador Jetlu.
+              Sua conta foi recusada. Fale com o administrador Lopesul.
             </p>
           )}
 

@@ -28,9 +28,14 @@
 }
 
 .app-brand-logo {
-  height: 47px;
+  height: 44px;
   width: auto;
+  max-width: 180px;
   display: block;
+  object-fit: contain;
+  background: #fff;
+  border-radius: 8px;
+  padding: 4px 8px;
 }
 
 .tabs {
