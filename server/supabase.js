@@ -52,6 +52,25 @@ export async function getAuthedSupabase(req) {
   return { client, userId: data.user.id, email: data.user.email }
 }
 
+export async function exigirMaster(req) {
+  const auth = await getAuthedSupabase(req)
+  if (!auth) {
+    return { ok: false, status: 401, mensagem: 'Entre com a conta master para sincronizar a cobertura.' }
+  }
+
+  const { data: profile } = await auth.client
+    .from('profiles')
+    .select('role')
+    .eq('id', auth.userId)
+    .maybeSingle()
+
+  if (profile?.role !== 'master') {
+    return { ok: false, status: 403, mensagem: 'Apenas o master pode sincronizar as cidades do SSW.' }
+  }
+
+  return { ok: true, client: auth.client, userId: auth.userId, email: auth.email }
+}
+
 export async function podePersistirCotacao(req) {
   const auth = await getAuthedSupabase(req)
   if (!auth) return false

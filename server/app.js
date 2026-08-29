@@ -6,7 +6,13 @@ import { cotar as cotarSimulacao, getMercadorias } from './sswClient.js'
 import { rastrearPorDanfe, rastrearPorDocumento } from './sswTracking.js'
 import { cotar as cotarOficial, solicitarColeta } from './sswCotacaoColeta.js'
 import { buscarCidadesPorNome, listarCidadesPorUf, listarUfsCobertura } from './coberturaManual.js'
-import { podePersistirCotacao, salvarColetaHistorico, salvarCotacaoHistorico } from './supabase.js'
+import { sincronizarCoberturaSsw } from './coberturaSsw.js'
+import {
+  exigirMaster,
+  podePersistirCotacao,
+  salvarColetaHistorico,
+  salvarCotacaoHistorico,
+} from './supabase.js'
 import {
   listActiveCarriers,
   publicCarrierList,
@@ -103,6 +109,25 @@ app.get('/api/mercadorias', async (req, res) => {
       erro: -2,
       mensagem: error.message || 'Erro interno ao buscar mercadorias',
       mercadorias: [],
+    })
+  }
+})
+
+app.post('/api/cidades/sincronizar-ssw', async (req, res) => {
+  try {
+    const auth = await exigirMaster(req)
+    if (!auth.ok) {
+      return res.status(auth.status).json({ sucesso: false, mensagem: auth.mensagem })
+    }
+
+    const substituir = req.body?.substituir !== false
+    const result = await sincronizarCoberturaSsw(auth.client, { substituir })
+    return res.json(result)
+  } catch (error) {
+    console.error('Erro sincronizar SSW:', error)
+    return res.status(500).json({
+      sucesso: false,
+      mensagem: error.message || 'Erro ao sincronizar cidades do SSW.',
     })
   }
 })

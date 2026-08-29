@@ -7,8 +7,6 @@ import { UFS_ATENDIDAS } from '../lib/ufsAtendidas'
 import RastreioPanel from '../components/RastreioPanel'
 import PainelUsuarios from './PainelUsuarios'
 import PainelCadastro from './PainelCadastro'
-import PainelDacte from './PainelDacte'
-import PainelEtiquetas from './PainelEtiquetas'
 import PainelCidadesAdmin from './PainelCidadesAdmin'
 import PainelVeiculos from './PainelVeiculos'
 import PainelCotacoes from './PainelCotacoes'
@@ -68,18 +66,6 @@ const ICONS = {
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <path d="M12 3a7 7 0 0 0-7 7v2.5A2.5 2.5 0 0 0 7.5 15H9v-4H6.2A5.8 5.8 0 0 1 12 5a5.8 5.8 0 0 1 5.8 6H15v4h1.5A2.5 2.5 0 0 0 19 12.5V10a7 7 0 0 0-7-7Z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
       <path d="M10 19h4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-    </svg>
-  ),
-  dacte: (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M7 3.5h7.5L19 8v12.5a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1v-16a1 1 0 0 1 1-1Z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
-      <path d="M14 3.5V8h4.5M8.5 12h7M8.5 15.5h7M8.5 19h4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  ),
-  tags: (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M3.5 12.5 12 4h6.5V10.5L10.5 20.5 3.5 12.5Z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
-      <circle cx="15.2" cy="8.8" r="1.3" fill="none" stroke="currentColor" strokeWidth="1.6" />
     </svg>
   ),
   truck: (
@@ -322,23 +308,29 @@ function Painel() {
     const items = [
       { id: 'inicio', label: 'Início', icon: ICONS.home },
       { id: 'rastreamento', label: 'Rastreamento', icon: ICONS.track },
-      { id: 'dacte', label: 'DACTE', icon: ICONS.dacte },
-      { id: 'etiquetas', label: 'Etiquetas', icon: ICONS.tags },
       { id: 'cotacoes', label: 'Cotações', icon: ICONS.quote },
-      { id: 'cidades', label: 'Cidades', icon: ICONS.cities },
-      { id: 'veiculos', label: 'Veículos', icon: ICONS.truck },
+    ]
+
+    if (isMaster) {
+      items.push(
+        {
+          id: 'usuarios',
+          label: 'Usuários',
+          icon: ICONS.users,
+          alertaAprovacao: aguardandoAprovacao > 0,
+        },
+        { id: 'cidades', label: 'Cidades', icon: ICONS.cities },
+        { id: 'cobertura', label: 'Cobertura', icon: ICONS.cities },
+        { id: 'veiculos', label: 'Veículos', icon: ICONS.truck },
+      )
+    } else {
+      items.push({ id: 'cidades', label: 'Cidades', icon: ICONS.cities })
+    }
+
+    items.push(
       { id: 'cadastro', label: 'Cadastro', icon: ICONS.profile },
       { id: 'atendimento', label: 'Atendimento', icon: ICONS.support },
-    ]
-    if (isMaster) {
-      items.splice(5, 0, {
-        id: 'usuarios',
-        label: 'Usuários',
-        icon: ICONS.users,
-        alertaAprovacao: aguardandoAprovacao > 0,
-      })
-      items.splice(7, 0, { id: 'cobertura', label: 'Cobertura', icon: ICONS.cities })
-    }
+    )
     return items
   }, [isMaster, aguardandoAprovacao])
 
@@ -403,7 +395,12 @@ function Painel() {
     return <Navigate to="/painel/cadastro" replace />
   }
 
-  if (!loading && user && (section === 'usuarios' || section === 'cobertura') && !isMaster) {
+  if (
+    !loading &&
+    user &&
+    !isMaster &&
+    (section === 'usuarios' || section === 'cobertura' || section === 'veiculos')
+  ) {
     return <Navigate to="/painel" replace />
   }
 
@@ -563,10 +560,6 @@ function Painel() {
             </div>
           )}
 
-          {!isRejected && section === 'dacte' && <PainelDacte />}
-
-          {!isRejected && section === 'etiquetas' && <PainelEtiquetas />}
-
           {!isRejected && section === 'cotacoes' && (
             <PainelCotacoes
               canUseCotacao={canUseCotacao}
@@ -591,7 +584,7 @@ function Painel() {
             </div>
           )}
 
-          {!isRejected && section === 'veiculos' && (
+          {isMaster && section === 'veiculos' && (
             <div className="painel-section">
               <PainelVeiculos isMaster={isMaster} />
             </div>

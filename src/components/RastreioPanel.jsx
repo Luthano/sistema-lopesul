@@ -24,6 +24,29 @@ function RastreioPanel() {
   const [loading, setLoading] = useState(false)
   const [erro, setErro] = useState('')
   const [resultado, setResultado] = useState(null)
+  const [bloqueiaAutofill, setBloqueiaAutofill] = useState(true)
+
+  function resetarFormulario() {
+    setChaveDanfe('')
+    setDocumento('')
+    setNroNf('')
+    setSenha('')
+    setBloqueiaAutofill(true)
+  }
+
+  function trocarModo(proximo) {
+    setModo(proximo)
+    setErro('')
+    resetarFormulario()
+  }
+
+  const antiAutofill = {
+    autoComplete: 'off',
+    autoCorrect: 'off',
+    spellCheck: false,
+    readOnly: bloqueiaAutofill,
+    onFocus: () => setBloqueiaAutofill(false),
+  }
 
   async function handleSubmit(event) {
     event.preventDefault()
@@ -74,6 +97,7 @@ function RastreioPanel() {
     } catch {
       setErro('Não foi possível consultar o rastreio. Tente novamente.')
     } finally {
+      resetarFormulario()
       setLoading(false)
     }
   }
@@ -86,7 +110,7 @@ function RastreioPanel() {
           role="tab"
           aria-selected={modo === 'danfe'}
           className={modo === 'danfe' ? 'is-active' : ''}
-          onClick={() => setModo('danfe')}
+          onClick={() => trocarModo('danfe')}
         >
           Chave DANFE
         </button>
@@ -95,23 +119,24 @@ function RastreioPanel() {
           role="tab"
           aria-selected={modo === 'documento'}
           className={modo === 'documento' ? 'is-active' : ''}
-          onClick={() => setModo('documento')}
+          onClick={() => trocarModo('documento')}
         >
           NF + CPF/CNPJ
         </button>
       </div>
 
-      <form className="rastreio-form" onSubmit={handleSubmit}>
+      <form className="rastreio-form" autoComplete="off" onSubmit={handleSubmit}>
         {modo === 'danfe' ? (
           <label>
             <span>Chave de acesso da NF-e (44 dígitos)</span>
             <input
+              name="lopesul-rastreio-danfe"
               value={chaveDanfe}
               onChange={(event) => setChaveDanfe(event.target.value)}
               inputMode="numeric"
-              autoComplete="off"
               placeholder="3520 1234 5678 9012 3456 7890 1234 5678 9012 3456 7890"
               maxLength={54}
+              {...antiAutofill}
             />
           </label>
         ) : (
@@ -120,32 +145,35 @@ function RastreioPanel() {
               <label>
                 <span>CPF ou CNPJ</span>
                 <input
+                  name="lopesul-rastreio-documento"
                   value={documento}
                   onChange={(event) => setDocumento(event.target.value)}
                   inputMode="numeric"
-                  autoComplete="off"
                   placeholder="Somente números"
+                  {...antiAutofill}
                 />
               </label>
               <label>
                 <span>Número da NF</span>
                 <input
+                  name="lopesul-rastreio-nf"
                   value={nroNf}
                   onChange={(event) => setNroNf(event.target.value)}
                   inputMode="numeric"
-                  autoComplete="off"
                   placeholder="Ex.: 123456"
+                  {...antiAutofill}
                 />
               </label>
             </div>
             <label>
               <span>Senha de rastreio (opcional, só para CNPJ)</span>
               <input
-                type="password"
+                type="text"
+                name="lopesul-rastreio-senha"
                 value={senha}
                 onChange={(event) => setSenha(event.target.value)}
-                autoComplete="off"
                 placeholder="Se a Lopesul forneceu senha de consulta"
+                {...antiAutofill}
               />
             </label>
           </>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
 import { formatCnpj, formatCpf, formatPhone, isProfileComplete, onlyDigits } from '../lib/profile'
+import PainelAlterarSenha from './PainelAlterarSenha'
 import PainelExcluirConta from './PainelExcluirConta'
 
 function formFromProfile(profile) {
@@ -205,6 +206,7 @@ function PainelCadastro({ profile, canDelete = false, onSaved }) {
         </form>
       ) : (
         <div className="painel-view-grid">
+          <ViewField label="E-mail" value={profile?.email || user?.email} />
           <ViewField label="Nome completo" value={profile?.nome_completo || form.nome_completo} />
           <ViewField label="Endereço" value={profile?.endereco || form.endereco} />
           <ViewField label="CPF" value={formatCpf(profile?.cpf || form.cpf)} />
@@ -214,6 +216,8 @@ function PainelCadastro({ profile, canDelete = false, onSaved }) {
           {info && <p className="auth-info">{info}</p>}
         </div>
       )}
+
+      <PainelAlterarSenha />
 
       {canDelete && <PainelExcluirConta email={profile.email} />}
     </section>

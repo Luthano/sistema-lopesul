@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { authFetch } from '../lib/authFetch'
 import { supabase } from '../lib/supabase'
 import { UFS_BRASIL } from '../lib/ufsAtendidas'
 import './PainelCidadesAdmin.css'
@@ -38,6 +39,7 @@ function PainelCidadesAdmin() {
   const [editId, setEditId] = useState('')
   const [editNome, setEditNome] = useState('')
   const [confirmLimparUf, setConfirmLimparUf] = useState(false)
+  const [confirmSincronizar, setConfirmSincronizar] = useState(false)
 
   const carrier = useMemo(
     () => carriers.find((item) => item.id === carrierId) || null,
@@ -259,6 +261,29 @@ function PainelCidadesAdmin() {
     setSaving(false)
   }
 
+  async function confirmarSincronizarSsw() {
+    setConfirmSincronizar(false)
+    setSaving(true)
+    setErro('')
+    setInfo('')
+    try {
+      const response = await authFetch('/api/cidades/sincronizar-ssw', {
+        method: 'POST',
+        body: JSON.stringify({ substituir: true }),
+      })
+      const payload = await response.json().catch(() => ({}))
+      if (!response.ok || !payload.sucesso) {
+        throw new Error(payload.mensagem || 'Não foi possível sincronizar a malha do SSW.')
+      }
+      await carregarCidades()
+      const ufs = Object.keys(payload.porUf || {}).sort().join(', ')
+      setInfo(`${payload.mensagem}${ufs ? ` UFs: ${ufs}.` : ''}`)
+    } catch (error) {
+      setErro(error.message || 'Erro ao sincronizar cidades do SSW.')
+    }
+    setSaving(false)
+  }
+
   const toolbarBusy = loadingCarriers && !carriers.length
   const showListaVazia = !loadingCidades && cidadesFiltradas.length === 0
 
@@ -334,6 +359,25 @@ function PainelCidadesAdmin() {
             Importar lista
           </button>
         </form>
+
+        <div className="cob-card">
+          <h3>Sincronizar do SSW</h3>
+          <p className="cob-hint">
+            Lê a malha pública da Lopesul no SSW (área atendida) e substitui as cidades cadastradas.
+          </p>
+          <button
+            type="button"
+            className="painel-section-cta"
+            disabled={saving || !carrierId}
+            onClick={() => {
+              setErro('')
+              setInfo('')
+              setConfirmSincronizar(true)
+            }}
+          >
+            Buscar cidades no SSW
+          </button>
+        </div>
       </div>
 
       <div className="cob-list-head">
@@ -353,6 +397,46 @@ function PainelCidadesAdmin() {
           Limpar UF
         </button>
       </div>
+
+      {confirmSincronizar && (
+        <div
+          className="cob-confirm-backdrop"
+          role="presentation"
+          onClick={() => !saving && setConfirmSincronizar(false)}
+        >
+          <div
+            className="cob-confirm"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="cob-sync-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 id="cob-sync-title">Sincronizar cobertura com o SSW?</h3>
+            <p>
+              Isso consulta as cidades atendidas da Lopesul no SSW e <strong>substitui</strong> a
+              cobertura atual no sistema. A consulta leva cerca de um minuto.
+            </p>
+            <div className="cob-confirm-actions">
+              <button
+                type="button"
+                className="painel-section-cta is-ghost cob-btn-compact"
+                onClick={() => setConfirmSincronizar(false)}
+                disabled={saving}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="painel-section-cta cob-btn-compact"
+                onClick={confirmarSincronizarSsw}
+                disabled={saving}
+              >
+                Sim, sincronizar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {confirmLimparUf && (
         <div

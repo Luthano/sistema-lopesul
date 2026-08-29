@@ -29,3 +29,7 @@ Image/
 
 # Relatorio local de revisao de cidades
 cidades-revisao-jl-ls.txt
+
+.vercel
+.env*
+supabase/.temp/
