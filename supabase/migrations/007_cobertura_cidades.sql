@@ -128,9 +128,7 @@ create policy cobertura_cidades_write_master
 
 insert into public.transportadoras_cobertura (id, nome, sigla, ativo, ordem)
 values
-  ('jetlu', 'Jetlu', 'JL', true, 1),
-  ('lopesul', 'Lopesul', 'LS', true, 2),
-  ('envia', 'Envia Rápido', 'ER', true, 3)
+  ('lopesul', 'Lopesul', 'LS', true, 1)
 on conflict (id) do update
 set
   nome = excluded.nome,

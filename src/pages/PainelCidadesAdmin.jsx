@@ -38,11 +38,6 @@ function PainelCidadesAdmin() {
   const [editId, setEditId] = useState('')
   const [editNome, setEditNome] = useState('')
   const [confirmLimparUf, setConfirmLimparUf] = useState(false)
-  const [novaTransportadora, setNovaTransportadora] = useState({
-    id: '',
-    nome: '',
-    sigla: '',
-  })
 
   const carrier = useMemo(
     () => carriers.find((item) => item.id === carrierId) || null,
@@ -59,13 +54,14 @@ function PainelCidadesAdmin() {
     const { data, error } = await supabase
       .from('transportadoras_cobertura')
       .select('id, nome, sigla, ativo, ordem')
+      .eq('id', 'lopesul')
       .order('ordem', { ascending: true })
 
     if (error) throw error
     setCarriers(data || [])
     setCarrierId((prev) => {
       if (prev && (data || []).some((item) => item.id === prev)) return prev
-      return data?.[0]?.id || ''
+      return data?.[0]?.id || 'lopesul'
     })
   }, [])
 
@@ -263,51 +259,6 @@ function PainelCidadesAdmin() {
     setSaving(false)
   }
 
-  async function salvarTransportadora(event) {
-    event.preventDefault()
-    const id = String(novaTransportadora.id || '')
-      .trim()
-      .toLowerCase()
-      .replace(/[^a-z0-9_-]/g, '')
-    const nome = String(novaTransportadora.nome || '').trim()
-    const sigla = String(novaTransportadora.sigla || '').trim().toUpperCase()
-
-    if (!id || !nome || !sigla) {
-      setErro('Preencha id, nome e sigla da transportadora.')
-      return
-    }
-
-    setSaving(true)
-    setErro('')
-    const { data, error } = await supabase
-      .from('transportadoras_cobertura')
-      .upsert(
-        {
-          id,
-          nome,
-          sigla,
-          ativo: true,
-          ordem: carriers.length + 1,
-        },
-        { onConflict: 'id' },
-      )
-      .select('id, nome, sigla, ativo, ordem')
-      .maybeSingle()
-
-    if (error) {
-      setErro(error.message || 'Não foi possível salvar a transportadora.')
-    } else if (data) {
-      setCarriers((prev) => {
-        const sem = prev.filter((item) => item.id !== data.id)
-        return [...sem, data].sort((a, b) => (a.ordem || 0) - (b.ordem || 0))
-      })
-      setInfo(`Transportadora ${nome} (${sigla}) disponível.`)
-      setNovaTransportadora({ id: '', nome: '', sigla: '' })
-      setCarrierId(id)
-    }
-    setSaving(false)
-  }
-
   const toolbarBusy = loadingCarriers && !carriers.length
   const showListaVazia = !loadingCidades && cidadesFiltradas.length === 0
 
@@ -381,35 +332,6 @@ function PainelCidadesAdmin() {
           />
           <button type="submit" className="painel-section-cta" disabled={saving || !carrierId}>
             Importar lista
-          </button>
-        </form>
-
-        <form className="cob-card" onSubmit={salvarTransportadora}>
-          <h3>Nova transportadora</h3>
-          <p className="cob-hint">Para parceiras futuras (id único, nome e sigla na lista pública).</p>
-          <div className="cob-carrier-fields">
-            <input
-              value={novaTransportadora.id}
-              onChange={(e) => setNovaTransportadora((prev) => ({ ...prev, id: e.target.value }))}
-              placeholder="id (ex.: envia)"
-              disabled={saving}
-            />
-            <input
-              value={novaTransportadora.nome}
-              onChange={(e) => setNovaTransportadora((prev) => ({ ...prev, nome: e.target.value }))}
-              placeholder="Nome"
-              disabled={saving}
-            />
-            <input
-              value={novaTransportadora.sigla}
-              onChange={(e) => setNovaTransportadora((prev) => ({ ...prev, sigla: e.target.value }))}
-              placeholder="Sigla (ex.: ER)"
-              maxLength={6}
-              disabled={saving}
-            />
-          </div>
-          <button type="submit" className="painel-section-cta is-ghost" disabled={saving}>
-            Cadastrar transportadora
           </button>
         </form>
       </div>

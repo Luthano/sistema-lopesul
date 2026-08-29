@@ -17,7 +17,6 @@ function SiteFooter() {
             <Link to="/cotacao">Cotação</Link>
             <Link to="/rastrear">Rastrear encomenda</Link>
             <Link to="/cidades-atendidas">Cidades atendidas</Link>
-            <Link to="/cadastrar-veiculo">Cadastrar veículo</Link>
             <Link to="/painel">Painel</Link>
           </div>
 

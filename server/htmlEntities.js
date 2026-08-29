@@ -59,7 +59,7 @@ export function decodeHtmlEntities(value) {
 
 export function mensagemSemCobertura(ofertas = []) {
   const falhas = ofertas.filter((o) => !o.sucesso)
-  if (falhas.length === 0) return 'Nenhuma transportadora retornou cotação.'
+  if (falhas.length === 0) return 'A Lopesul não retornou cotação.'
 
   const textos = falhas.map((o) => ({
     nome: o.nome || 'Transportadora',
@@ -70,19 +70,19 @@ export function mensagemSemCobertura(ofertas = []) {
     /cidade\s+destino\s+n[aã]o\s+atendida/i.test(o.mensagem),
   )
   if (destinoNaoAtendido) {
-    return 'Nenhuma transportadora atende o CEP de destino informado. Confira o CEP ou consulte Cidades atendidas.'
+    return 'A Lopesul não atende o CEP de destino informado. Confira o CEP ou consulte Cidades atendidas.'
   }
 
   const origemNaoAtendida = textos.every((o) =>
     /cidade\s+origem\s+n[aã]o\s+atendida/i.test(o.mensagem),
   )
   if (origemNaoAtendida) {
-    return 'Nenhuma transportadora atende o CEP de origem informado. Confira o CEP de coleta.'
+    return 'A Lopesul não atende o CEP de origem informado. Confira o CEP de coleta.'
   }
 
   // Se todas ficaram vazias (objeto sem texto), mensagem genérica
   if (textos.every((o) => !o.mensagem || o.mensagem === 'sem cobertura')) {
-    return 'Nenhuma transportadora retornou cotação para esta rota. Verifique CEPs, CNPJ pagador e tente novamente.'
+    return 'A Lopesul não retornou cotação para esta rota. Verifique CEPs, CNPJ pagador e tente novamente.'
   }
 
   return textos.map((o) => `${o.nome}: ${o.mensagem}`).join(' | ')

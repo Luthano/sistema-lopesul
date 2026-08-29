@@ -1,31 +1,24 @@
 import { useEffect, useState } from 'react'
-import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
-import Home from './pages/Home'
 import Cotacao from './pages/Cotacao'
 import Rastrear from './pages/Rastrear'
 import CidadesAtendidas from './pages/CidadesAtendidas'
 import Login from './pages/Login'
 import Historico from './pages/Historico'
 import Painel from './pages/Painel'
-import CadastrarVeiculo from './pages/CadastrarVeiculo'
-import HubLogistico from './pages/HubLogistico'
 import SiteFooter from './components/SiteFooter'
 import { BRAND } from './lib/brand'
 import './App.css'
 
 const TABS = [
-  { to: '/', label: 'Início', short: 'Início' },
-  { to: '/hub-logistico', label: 'Hub logístico', short: 'Hub' },
   { to: '/cotacao', label: 'Cotação', short: 'Cotação' },
   { to: '/rastrear', label: 'Rastrear', short: 'Rastrear' },
   { to: '/cidades-atendidas', label: 'Cidades atendidas', short: 'Cidades' },
-  { to: '/cadastrar-veiculo', label: 'Cadastrar veículo', short: 'Veículo' },
   { to: '/painel', label: 'Painel', short: 'Painel' },
 ]
 
 function isTabActive(pathname, to) {
-  if (to === '/') return pathname === '/'
   if (to === '/painel') return pathname === '/painel' || pathname.startsWith('/painel/')
   return pathname === to || pathname.startsWith(`${to}/`)
 }
@@ -65,7 +58,7 @@ function AppHeader({ scrolled }) {
 
   return (
     <header className={`app-header ${scrolled ? 'is-scrolled' : ''} ${menuOpen ? 'is-menu-open' : ''}`}>
-      <Link to="/" className="app-brand">
+      <Link to="/cotacao" className="app-brand">
         <img className="app-brand-logo" src={BRAND.logo} alt={BRAND.name} />
       </Link>
 
@@ -146,12 +139,12 @@ function AppShell() {
       <AppHeader scrolled={scrolled} />
       <main className="app-main">
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Navigate to="/cotacao" replace />} />
+          <Route path="/hub-logistico" element={<Navigate to="/cotacao" replace />} />
+          <Route path="/cadastrar-veiculo" element={<Navigate to="/cotacao" replace />} />
           <Route path="/rastrear" element={<Rastrear />} />
           <Route path="/cotacao" element={<Cotacao />} />
           <Route path="/cidades-atendidas" element={<CidadesAtendidas />} />
-          <Route path="/hub-logistico" element={<HubLogistico />} />
-          <Route path="/cadastrar-veiculo" element={<CadastrarVeiculo />} />
           <Route path="/login" element={<Login />} />
           <Route path="/painel/*" element={<Painel />} />
           <Route path="/historico" element={<Historico />} />

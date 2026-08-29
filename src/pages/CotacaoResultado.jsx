@@ -38,27 +38,19 @@ function formatMoney(value) {
   return num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 }
 
-const NOMES_POR_ID = {
-  jetlu: 'Jetlu',
-  lopesul: 'Lopesul',
-  envia: 'Envia Rápido',
-}
-
 function nomeTransportadora(oferta) {
   const id = String(oferta?.transportadoraId || '').toLowerCase()
-  if (NOMES_POR_ID[id]) return NOMES_POR_ID[id]
+  if (id === 'lopesul') return 'Lopesul'
 
   const dominio = String(oferta?.dominio || '').trim().toUpperCase()
-  if (dominio === 'JEU') return 'Jetlu'
   if (dominio === 'LSU') return 'Lopesul'
-  if (dominio === 'ENR') return 'Envia Rápido'
 
   const bruto = String(oferta?.nome || oferta?.nomeTransportadora || '').trim()
   if (bruto && !/^ssw\b/i.test(bruto) && bruto !== '—' && bruto !== '-') {
     return bruto
   }
 
-  return 'Transportadora'
+  return 'Lopesul'
 }
 
 function OfertaCard({
@@ -208,10 +200,8 @@ function CotacaoResultado({
         <h2>{qtd > 1 ? 'Opções de frete' : 'Cotação disponível'}</h2>
         <p>
           {resultado.simulacao
-            ? 'Simulação das transportadoras consultadas para esta rota.'
-            : qtd > 1
-              ? 'Mais de uma transportadora retornou frete. Escolha a opção para a coleta.'
-              : 'Apenas esta transportadora retornou frete nesta consulta.'}
+            ? 'Simulação da cotação Lopesul para esta rota.'
+            : 'Cotação oficial da Lopesul para esta rota.'}
         </p>
       </div>
 

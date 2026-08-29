@@ -232,7 +232,7 @@ app.post('/api/cotacao', async (req, res) => {
     if (carriers.length === 0) {
       return res.status(500).json({
         erro: -2,
-        mensagem: 'Nenhuma transportadora SSW configurada no servidor.',
+        mensagem: 'Credenciais SSW da Lopesul não configuradas no servidor.',
         sucesso: false,
         ofertas: [],
       })

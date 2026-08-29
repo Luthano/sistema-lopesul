@@ -201,7 +201,7 @@ function Cotacao() {
       const data = await res.json()
 
       if (!data.sucesso) {
-        setErro(data.mensagem || 'Nenhuma transportadora atende esta rota com os dados informados.')
+        setErro(data.mensagem || 'A Lopesul não atende esta rota com os dados informados.')
         setResultado(null)
         return
       }

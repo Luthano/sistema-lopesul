@@ -26,12 +26,8 @@ function intersecaoSiglas(a = [], b = []) {
   return a.filter((sigla) => setB.has(sigla))
 }
 
-const ORDEM_COLETA_REDESPACHO = ['ER', 'LS', 'JL']
-
 function nomePorSigla(sigla) {
-  if (sigla === 'JL') return 'Jetlu'
   if (sigla === 'LS') return 'Lopesul'
-  if (sigla === 'ER') return 'Envia Rápido'
   return sigla
 }
 
@@ -176,26 +172,6 @@ function CidadeCampo({
   )
 }
 
-/** Coleta em uma transportadora e entrega em outra (redespacho). */
-function montarRedespacho(siglasOrigem = [], siglasDestino = []) {
-  const destPrefer = siglasDestino.includes('JL') ? 'JL' : siglasDestino[0] || ''
-  if (!destPrefer) return null
-
-  const candidatas = siglasOrigem.filter((sigla) => sigla !== destPrefer)
-  if (!candidatas.length) return null
-
-  candidatas.sort((a, b) => {
-    const ia = ORDEM_COLETA_REDESPACHO.indexOf(a)
-    const ib = ORDEM_COLETA_REDESPACHO.indexOf(b)
-    return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib)
-  })
-
-  return {
-    coleta: candidatas[0],
-    entrega: destPrefer,
-  }
-}
-
 function CidadesAtendidas() {
   const [ufOrigem, setUfOrigem] = useState('')
   const [cidadeOrigem, setCidadeOrigem] = useState('')
@@ -285,24 +261,16 @@ function CidadesAtendidas() {
 
       let tipo = 'nao'
       let siglas = []
-      let redespacho = null
 
       if (origemMatch && destinoMatch && siglasDiretas.length) {
         tipo = 'direta'
         siglas = siglasDiretas
-      } else if (origemMatch && destinoMatch) {
-        redespacho = montarRedespacho(siglasOrigem, siglasDestino)
-        if (redespacho) {
-          tipo = 'redespacho'
-          siglas = [redespacho.coleta, redespacho.entrega]
-        }
       }
 
       setConsulta({
         tipo,
         atendida: tipo !== 'nao',
         siglas,
-        redespacho,
         origem: {
           uf: origemUf,
           cidade: origemMatch ? cityName(origemMatch) : origemNome,
@@ -378,19 +346,8 @@ function CidadesAtendidas() {
 
   const selectedMapUf = mapaFoco === 'origem' ? ufOrigem : ufDestino
 
-  const statusClass =
-    consulta?.tipo === 'direta'
-      ? 'is-ok'
-      : consulta?.tipo === 'redespacho'
-        ? 'is-redespacho'
-        : 'is-no'
-
-  const statusTitulo =
-    consulta?.tipo === 'direta'
-      ? 'Rota atendida'
-      : consulta?.tipo === 'redespacho'
-        ? 'Rota com redespacho'
-        : 'Rota não atendida'
+  const statusClass = consulta?.tipo === 'direta' ? 'is-ok' : 'is-no'
+  const statusTitulo = consulta?.tipo === 'direta' ? 'Rota atendida pela Lopesul' : 'Rota não atendida'
 
   return (
     <div className="page-shell">
@@ -530,7 +487,7 @@ function CidadesAtendidas() {
                         ? 'Cidade de saída não encontrada na cobertura.'
                         : !consulta.destino.encontrada
                           ? 'Cidade de destino não encontrada na cobertura.'
-                          : 'Não foi possível montar rota direta nem redespacho com a cobertura cadastrada.'}
+                          : 'A Lopesul não atende esta combinação de saída e destino.'}
                   </p>
                 )}
 

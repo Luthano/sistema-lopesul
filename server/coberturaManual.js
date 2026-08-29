@@ -2,6 +2,7 @@ import { getPublicSupabase } from './supabase.js'
 
 const CACHE_TTL_MS = 10 * 1000
 const cache = new Map()
+const LOPESUL_ID = 'lopesul'
 
 function normalizeUf(value) {
   return String(value ?? '').trim().toUpperCase()
@@ -52,6 +53,7 @@ async function carregarTransportadorasAtivas() {
     .from('transportadoras_cobertura')
     .select('id, nome, sigla, ativo, ordem')
     .eq('ativo', true)
+    .eq('id', LOPESUL_ID)
     .order('ordem', { ascending: true })
 
   if (error) throw new Error(error.message || 'Falha ao carregar transportadoras.')
@@ -60,7 +62,9 @@ async function carregarTransportadorasAtivas() {
 
 export async function listarUfsCobertura() {
   const client = requireClient()
-  const data = await selectAllRows(() => client.from('cobertura_cidades').select('uf').order('uf', { ascending: true }))
+  const data = await selectAllRows(() =>
+    client.from('cobertura_cidades').select('uf').eq('transportadora_id', LOPESUL_ID).order('uf', { ascending: true }),
+  )
 
   const ufs = [...new Set((data || []).map((row) => normalizeUf(row.uf)).filter(Boolean))]
   ufs.sort((a, b) => a.localeCompare(b, 'pt-BR'))
@@ -92,6 +96,7 @@ export async function listarCidadesPorUf(ufRaw) {
       .from('cobertura_cidades')
       .select('cidade, transportadora_id, transportadoras_cobertura!inner(id, sigla, ativo)')
       .eq('uf', uf)
+      .eq('transportadora_id', LOPESUL_ID)
       .eq('transportadoras_cobertura.ativo', true)
       .order('cidade', { ascending: true }),
   )
@@ -153,6 +158,7 @@ export async function buscarCidadesPorNome(nomeRaw) {
     client
       .from('cobertura_cidades')
       .select('uf, cidade, transportadora_id, transportadoras_cobertura!inner(sigla, ativo)')
+      .eq('transportadora_id', LOPESUL_ID)
       .eq('transportadoras_cobertura.ativo', true)
       .order('cidade', { ascending: true }),
   )

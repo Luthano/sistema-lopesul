@@ -334,19 +334,9 @@
   line-height: 1.2;
 }
 
-.cidades-sigla.is-jl {
-  background: var(--brand-navy, #062855);
-  color: #fff;
-}
-
 .cidades-sigla.is-ls {
   background: #b8d4f0;
   color: #1a1c27;
-}
-
-.cidades-sigla.is-er {
-  background: var(--brand-red, #f80016);
-  color: #fff;
 }
 
 .cidades-status {

@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { authFetch } from '../lib/authFetch'
 import './PainelUsuarios.css'
 import './PainelVeiculos.css'
@@ -127,9 +126,6 @@ function PainelVeiculos({ isMaster }) {
               : 'Acompanhe e edite os veículos vinculados à sua conta.'}
           </p>
         </div>
-        <Link to="/cadastrar-veiculo" className="painel-section-cta">
-          Novo cadastro
-        </Link>
       </header>
 
       {erro ? (
@@ -208,40 +204,34 @@ function PainelVeiculos({ isMaster }) {
                   </label>
                 ) : null}
 
-                <div className="user-card-actions">
-                  {isMaster ? (
-                    <>
-                      <button
-                        type="button"
-                        className="painel-section-cta is-ghost"
-                        disabled={saving || veiculo.status === 'em_contato'}
-                        onClick={() => atualizarStatus(veiculo, 'em_contato')}
-                      >
-                        Em contato
-                      </button>
-                      <button
-                        type="button"
-                        className="painel-section-cta"
-                        disabled={saving || veiculo.status === 'aprovado'}
-                        onClick={() => atualizarStatus(veiculo, 'aprovado')}
-                      >
-                        Aprovar
-                      </button>
-                      <button
-                        type="button"
-                        className="painel-danger-btn"
-                        disabled={saving || veiculo.status === 'recusado'}
-                        onClick={() => atualizarStatus(veiculo, 'recusado')}
-                      >
-                        Recusar
-                      </button>
-                    </>
-                  ) : (
-                    <Link to="/cadastrar-veiculo" className="painel-section-cta is-ghost">
-                      Editar na página
-                    </Link>
-                  )}
-                </div>
+                {isMaster ? (
+                  <div className="user-card-actions">
+                    <button
+                      type="button"
+                      className="painel-section-cta is-ghost"
+                      disabled={saving || veiculo.status === 'em_contato'}
+                      onClick={() => atualizarStatus(veiculo, 'em_contato')}
+                    >
+                      Em contato
+                    </button>
+                    <button
+                      type="button"
+                      className="painel-section-cta"
+                      disabled={saving || veiculo.status === 'aprovado'}
+                      onClick={() => atualizarStatus(veiculo, 'aprovado')}
+                    >
+                      Aprovar
+                    </button>
+                    <button
+                      type="button"
+                      className="painel-danger-btn"
+                      disabled={saving || veiculo.status === 'recusado'}
+                      onClick={() => atualizarStatus(veiculo, 'recusado')}
+                    >
+                      Recusar
+                    </button>
+                  </div>
+                ) : null}
               </article>
             )
           })}

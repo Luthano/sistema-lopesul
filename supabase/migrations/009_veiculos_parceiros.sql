@@ -1,4 +1,4 @@
--- Cadastro de veículos parceiros (público + conta Jetlu + aprovação master)
+-- Cadastro de veículos parceiros (público + conta Lopesul + aprovação master)
 
 create table if not exists public.veiculos_parceiros (
   id uuid primary key default gen_random_uuid(),
