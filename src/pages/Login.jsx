@@ -47,7 +47,8 @@ function Login() {
   }
 
   return (
-    <div className="auth-page">
+    <div className="page-shell">
+      <div className="page-block">
       <form className="auth-card" onSubmit={handleSubmit}>
         <p className="auth-kicker">{modo === 'entrar' ? 'Acesso' : 'Cadastro'}</p>
         <h1>{modo === 'entrar' ? 'Entrar na conta' : 'Criar conta'}</h1>
@@ -104,6 +105,7 @@ function Login() {
           {modo === 'entrar' ? 'Não tem conta? Cadastre-se' : 'Já tem conta? Entrar'}
         </button>
       </form>
+      </div>
     </div>
   )
 }

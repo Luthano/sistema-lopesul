@@ -425,6 +425,8 @@ function Painel() {
   const currentNav = navItems.find((item) => item.id === section) || navItems[0]
 
   return (
+    <div className="page-shell">
+    <div className="page-block painel-page">
     <div className="painel-admin-shell">
       {avisoCadastroAberto ? (
         <div className="painel-aviso-backdrop" role="presentation" onClick={fecharAvisoCadastro}>
@@ -605,6 +607,8 @@ function Painel() {
           {!isRejected && section === 'atendimento' && <PainelAtendimento />}
         </div>
       </div>
+    </div>
+    </div>
     </div>
   )
 }

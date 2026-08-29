@@ -105,22 +105,24 @@
 }
 
 .page-shell {
+  --page-width: 1120px;
   flex: 1;
   padding: 40px 16px 48px;
   background: #f4f6fa;
 }
 
 .page-block {
-  width: min(1120px, 100%);
+  width: min(var(--page-width), 100%);
   margin: 0 auto;
   background: #fff;
   border-radius: 20px;
   padding: 28px;
   box-shadow: 0 16px 40px rgba(6, 40, 85, 0.08);
+  box-sizing: border-box;
 }
 
 .page-block.is-narrow {
-  width: min(880px, 100%);
+  width: min(var(--page-width), 100%);
 }
 
 @media (max-width: 900px) {

@@ -6,12 +6,12 @@
 
 .auth-card,
 .historico-wrap {
-  width: min(720px, 100%);
-  margin: 0 auto;
-  background: #fff;
-  border-radius: 20px;
-  padding: 28px;
-  box-shadow: 0 16px 40px rgba(6, 40, 85, 0.08);
+  width: 100%;
+  margin: 0;
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
 }
 
 .auth-card {
