@@ -6,7 +6,7 @@
 }
 
 .site-footer-wrap {
-  width: min(1120px, calc(100% - 32px));
+  width: min(var(--page-width), calc(100% - 2 * var(--page-gutter)));
   margin: 0 auto;
 }
 
@@ -84,7 +84,7 @@
 
 @media (max-width: 900px) {
   .site-footer-wrap {
-    width: min(1180px, calc(100% - 24px));
+    width: min(var(--page-width), calc(100% - 2 * var(--page-gutter)));
   }
 
   .site-footer-grid {

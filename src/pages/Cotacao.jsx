@@ -297,7 +297,7 @@ function Cotacao() {
                 />
               </label>
               <label className="field">
-                <span>Destinatário (opcional)</span>
+                <span>Destinatário</span>
                 <input
                   value={form.cnpjDestinatario}
                   onChange={(e) => updateField('cnpjDestinatario', e.target.value)}

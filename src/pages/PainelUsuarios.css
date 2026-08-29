@@ -6,12 +6,15 @@
 
 .painel-admin-head h2 {
   margin: 0;
+  font-size: 1.02rem;
+  font-weight: 700;
 }
 
 .painel-admin-head p {
   margin: 6px 0 0;
   color: var(--muted);
-  line-height: 1.45;
+  font-size: 0.82rem;
+  line-height: 1.4;
 }
 
 .user-filters {

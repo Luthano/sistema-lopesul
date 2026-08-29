@@ -173,7 +173,8 @@
 .painel-main-bar h1 {
   margin: 0;
   font-family: var(--font-display, inherit);
-  font-size: clamp(1.35rem, 2.4vw, 1.8rem);
+  font-size: 1.15rem;
+  font-weight: 700;
   color: var(--painel-deep);
   letter-spacing: -0.02em;
 }
@@ -220,10 +221,11 @@
 }
 
 .painel-section-head h2 {
-  margin: 2px 0 6px;
+  margin: 2px 0 4px;
   color: var(--painel-deep);
   font-family: var(--font-display, inherit);
-  font-size: 1.35rem;
+  font-size: 1.05rem;
+  font-weight: 700;
   letter-spacing: -0.02em;
   text-transform: none;
 }
@@ -231,7 +233,8 @@
 .painel-section-head p {
   margin: 0;
   color: var(--painel-muted);
-  line-height: 1.45;
+  font-size: 0.84rem;
+  line-height: 1.4;
 }
 
 .painel-eyebrow {
@@ -520,7 +523,7 @@ a.painel-card {
 .painel-cadastro-grid label {
   display: grid;
   gap: 6px;
-  font-size: 0.86rem;
+  font-size: 0.78rem;
   font-weight: 600;
   color: var(--muted, var(--painel-muted));
 }
@@ -543,30 +546,40 @@ a.painel-card {
 }
 
 .painel-cadastro h2,
-.painel-danger h3 {
+.painel-danger h3,
+.painel-admin-head h2 {
   margin: 0;
   color: var(--brand-deep, var(--painel-deep));
+  font-size: 1.02rem;
+  font-weight: 700;
+}
+
+.painel-cadastro .auth-copy,
+.painel-admin-head p {
+  font-size: 0.82rem;
 }
 
 .painel-view-field {
   display: grid;
-  gap: 4px;
-  padding: 12px 14px;
+  gap: 3px;
+  padding: 10px 12px;
   border-radius: 12px;
   background: #f8fafc;
 }
 
 .painel-view-field span {
   color: var(--muted, var(--painel-muted));
-  font-size: 0.75rem;
-  font-weight: 800;
+  font-size: 0.68rem;
+  font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
 .painel-view-field strong {
   color: var(--ink, var(--painel-ink));
+  font-size: 0.9rem;
   font-weight: 600;
+  line-height: 1.35;
 }
 
 .painel-view-field .is-empty {

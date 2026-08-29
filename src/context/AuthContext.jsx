@@ -39,20 +39,46 @@ export function AuthProvider({ children }) {
       return undefined
     }
 
-    supabase.auth.getSession().then(async ({ data }) => {
-      const nextSession = data.session ?? null
-      setSession(nextSession)
-      await refreshProfile(nextSession?.user?.id)
+    let cancelled = false
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (cancelled) return
+      setSession(data.session ?? null)
       setLoading(false)
     })
 
     const { data } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       setSession(nextSession)
-      refreshProfile(nextSession?.user?.id)
     })
 
-    return () => data.subscription.unsubscribe()
-  }, [refreshProfile])
+    return () => {
+      cancelled = true
+      data.subscription.unsubscribe()
+    }
+  }, [])
+
+  useEffect(() => {
+    const userId = session?.user?.id
+    if (!userId) {
+      setProfile(null)
+      return undefined
+    }
+
+    let cancelled = false
+
+    loadProfile(userId)
+      .then((nextProfile) => {
+        if (!cancelled) setProfile(nextProfile)
+      })
+      .catch((error) => {
+        console.error('Erro ao carregar perfil:', error.message)
+        if (!cancelled) setProfile(null)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [session?.user?.id])
 
   const user = session?.user ?? null
   const isMaster = profile?.role === 'master' || isMasterEmail(user?.email)

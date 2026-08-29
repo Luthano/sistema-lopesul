@@ -36,11 +36,14 @@
   font-family: var(--font-display, inherit);
   color: #062855;
   margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
 }
 
 .auth-copy {
   color: #5c6470;
-  line-height: 1.5;
+  font-size: 0.84rem;
+  line-height: 1.45;
   margin: 0;
 }
 

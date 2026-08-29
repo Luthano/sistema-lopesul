@@ -58,6 +58,7 @@ function AppHeader({ scrolled }) {
 
   return (
     <header className={`app-header ${scrolled ? 'is-scrolled' : ''} ${menuOpen ? 'is-menu-open' : ''}`}>
+      <div className="app-header-bar">
       <Link to="/cotacao" className="app-brand">
         <img className="app-brand-logo" src={BRAND.logo} alt={BRAND.name} />
       </Link>
@@ -90,6 +91,7 @@ function AppHeader({ scrolled }) {
         <span />
         <span />
       </button>
+      </div>
 
       <div
         className={`menu-backdrop ${menuOpen ? 'is-open' : ''}`}
