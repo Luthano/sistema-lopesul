@@ -52,6 +52,14 @@ export async function getAuthedSupabase(req) {
   return { client, userId: data.user.id, email: data.user.email }
 }
 
+export async function exigirUsuario(req) {
+  const auth = await getAuthedSupabase(req)
+  if (!auth) {
+    return { ok: false, status: 401, mensagem: 'Entre na sua conta para usar o sistema.' }
+  }
+  return { ok: true, client: auth.client, userId: auth.userId, email: auth.email }
+}
+
 export async function exigirMaster(req) {
   const auth = await getAuthedSupabase(req)
   if (!auth) {

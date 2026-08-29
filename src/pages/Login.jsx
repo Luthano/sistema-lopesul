@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { BRAND } from '../lib/brand'
 import './AuthPages.css'
 
 function Login() {
@@ -47,9 +48,10 @@ function Login() {
   }
 
   return (
-    <div className="page-shell">
-      <div className="page-block">
-      <form className="auth-card" onSubmit={handleSubmit}>
+    <div className="page-shell auth-page">
+      <div className="auth-frame">
+        <img className="auth-logo" src={BRAND.logo} alt={BRAND.name} />
+        <form className="auth-card" onSubmit={handleSubmit}>
         <p className="auth-kicker">{modo === 'entrar' ? 'Acesso' : 'Cadastro'}</p>
         <h1>{modo === 'entrar' ? 'Entrar na conta' : 'Criar conta'}</h1>
 
@@ -104,7 +106,7 @@ function Login() {
         >
           {modo === 'entrar' ? 'Não tem conta? Cadastre-se' : 'Já tem conta? Entrar'}
         </button>
-      </form>
+        </form>
       </div>
     </div>
   )

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
-import { BrowserRouter, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom'
-import { AuthProvider } from './context/AuthContext'
+import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom'
+import { AuthProvider, useAuth } from './context/AuthContext'
+import { RequireAuth, RootRedirect } from './components/RequireAuth'
 import Cotacao from './pages/Cotacao'
 import Rastrear from './pages/Rastrear'
 import CidadesAtendidas from './pages/CidadesAtendidas'
@@ -35,7 +36,9 @@ function ScrollToTop() {
 
 function AppHeader({ scrolled }) {
   const { pathname } = useLocation()
+  const { user, loading } = useAuth()
   const [menuOpen, setMenuOpen] = useState(false)
+  const showNav = !loading && Boolean(user)
 
   useEffect(() => {
     setMenuOpen(false)
@@ -59,67 +62,75 @@ function AppHeader({ scrolled }) {
   return (
     <header className={`app-header ${scrolled ? 'is-scrolled' : ''} ${menuOpen ? 'is-menu-open' : ''}`}>
       <div className="app-header-bar">
-      <Link to="/cotacao" className="app-brand">
+      <Link to={user ? '/cotacao' : '/login'} className="app-brand">
         <img className="app-brand-logo" src={BRAND.logo} alt={BRAND.name} />
       </Link>
 
-      <nav className="tabs tabs-desktop" aria-label="Navegação principal">
-        {TABS.map((tab) => {
-          const active = isTabActive(pathname, tab.to)
-          return (
-            <Link
-              key={tab.to}
-              to={tab.to}
-              className={active ? 'tab is-active' : 'tab'}
-              aria-current={active ? 'page' : undefined}
-            >
-              <span className="tab-label-full">{tab.label}</span>
-              <span className="tab-label-short">{tab.short}</span>
-            </Link>
-          )
-        })}
-      </nav>
+      {showNav ? (
+        <>
+          <nav className="tabs tabs-desktop" aria-label="Navegação principal">
+            {TABS.map((tab) => {
+              const active = isTabActive(pathname, tab.to)
+              return (
+                <Link
+                  key={tab.to}
+                  to={tab.to}
+                  className={active ? 'tab is-active' : 'tab'}
+                  aria-current={active ? 'page' : undefined}
+                >
+                  <span className="tab-label-full">{tab.label}</span>
+                  <span className="tab-label-short">{tab.short}</span>
+                </Link>
+              )
+            })}
+          </nav>
 
-      <button
-        type="button"
-        className={`menu-toggle ${menuOpen ? 'is-open' : ''}`}
-        aria-expanded={menuOpen}
-        aria-controls="menu-mobile"
-        aria-label={menuOpen ? 'Fechar menu' : 'Abrir menu'}
-        onClick={() => setMenuOpen((prev) => !prev)}
-      >
-        <span />
-        <span />
-        <span />
-      </button>
+          <button
+            type="button"
+            className={`menu-toggle ${menuOpen ? 'is-open' : ''}`}
+            aria-expanded={menuOpen}
+            aria-controls="menu-mobile"
+            aria-label={menuOpen ? 'Fechar menu' : 'Abrir menu'}
+            onClick={() => setMenuOpen((prev) => !prev)}
+          >
+            <span />
+            <span />
+            <span />
+          </button>
+        </>
+      ) : null}
       </div>
 
-      <div
-        className={`menu-backdrop ${menuOpen ? 'is-open' : ''}`}
-        aria-hidden={!menuOpen}
-        onClick={() => setMenuOpen(false)}
-      />
+      {showNav ? (
+        <>
+          <div
+            className={`menu-backdrop ${menuOpen ? 'is-open' : ''}`}
+            aria-hidden={!menuOpen}
+            onClick={() => setMenuOpen(false)}
+          />
 
-      <nav
-        id="menu-mobile"
-        className={`menu-mobile ${menuOpen ? 'is-open' : ''}`}
-        aria-label="Menu mobile"
-        aria-hidden={!menuOpen}
-      >
-        {TABS.map((tab) => {
-          const active = isTabActive(pathname, tab.to)
-          return (
-            <Link
-              key={tab.to}
-              to={tab.to}
-              className={active ? 'menu-mobile-link is-active' : 'menu-mobile-link'}
-              aria-current={active ? 'page' : undefined}
-            >
-              {tab.label}
-            </Link>
-          )
-        })}
-      </nav>
+          <nav
+            id="menu-mobile"
+            className={`menu-mobile ${menuOpen ? 'is-open' : ''}`}
+            aria-label="Menu mobile"
+            aria-hidden={!menuOpen}
+          >
+            {TABS.map((tab) => {
+              const active = isTabActive(pathname, tab.to)
+              return (
+                <Link
+                  key={tab.to}
+                  to={tab.to}
+                  className={active ? 'menu-mobile-link is-active' : 'menu-mobile-link'}
+                  aria-current={active ? 'page' : undefined}
+                >
+                  {tab.label}
+                </Link>
+              )
+            })}
+          </nav>
+        </>
+      ) : null}
     </header>
   )
 }
@@ -142,15 +153,50 @@ function AppShell() {
       <AppHeader scrolled={scrolled} />
       <main className="app-main">
         <Routes>
-          <Route path="/" element={<Navigate to="/cotacao" replace />} />
-          <Route path="/hub-logistico" element={<Navigate to="/cotacao" replace />} />
-          <Route path="/cadastrar-veiculo" element={<Navigate to="/cotacao" replace />} />
-          <Route path="/rastrear" element={<Rastrear />} />
-          <Route path="/cotacao" element={<Cotacao />} />
-          <Route path="/cidades-atendidas" element={<CidadesAtendidas />} />
+          <Route path="/" element={<RootRedirect />} />
+          <Route path="/hub-logistico" element={<RootRedirect />} />
+          <Route path="/cadastrar-veiculo" element={<RootRedirect />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/painel/*" element={<Painel />} />
-          <Route path="/historico" element={<Historico />} />
+          <Route
+            path="/rastrear"
+            element={
+              <RequireAuth>
+                <Rastrear />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/cotacao"
+            element={
+              <RequireAuth>
+                <Cotacao />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/cidades-atendidas"
+            element={
+              <RequireAuth>
+                <CidadesAtendidas />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/painel/*"
+            element={
+              <RequireAuth>
+                <Painel />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/historico"
+            element={
+              <RequireAuth>
+                <Historico />
+              </RequireAuth>
+            }
+          />
         </Routes>
       </main>
       <SiteFooter />

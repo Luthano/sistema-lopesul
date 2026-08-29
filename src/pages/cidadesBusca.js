@@ -1,3 +1,5 @@
+import { authFetch } from '../lib/authFetch'
+
 export function onlyDigits(value) {
   return String(value ?? '').replace(/\D/g, '')
 }
@@ -57,7 +59,7 @@ export function matchCity(query, cidades) {
 }
 
 export async function buscarUfsCobertura() {
-  const res = await fetch('/api/cidades?meta=ufs')
+  const res = await authFetch('/api/cidades?meta=ufs')
   const data = await res.json()
   if (!data.sucesso) {
     throw new Error(data.mensagem || 'Não foi possível listar as UFs.')
@@ -66,7 +68,7 @@ export async function buscarUfsCobertura() {
 }
 
 export async function buscarCidadesPorUf(uf) {
-  const res = await fetch(`/api/cidades?uf=${encodeURIComponent(uf)}`)
+  const res = await authFetch(`/api/cidades?uf=${encodeURIComponent(uf)}`)
   const data = await res.json()
   if (!data.sucesso) {
     throw new Error(data.mensagem || 'Não foi possível consultar as cidades.')
@@ -75,7 +77,7 @@ export async function buscarCidadesPorUf(uf) {
 }
 
 export async function buscarCidadesPorNome(cidade) {
-  const res = await fetch(`/api/cidades?cidade=${encodeURIComponent(cidade)}`)
+  const res = await authFetch(`/api/cidades?cidade=${encodeURIComponent(cidade)}`)
   const data = await res.json()
   if (!data.sucesso) {
     throw new Error(data.mensagem || 'Não foi possível consultar as cidades.')

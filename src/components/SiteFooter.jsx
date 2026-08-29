@@ -1,8 +1,12 @@
 import { Link } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 import { BRAND, mailtoComercial, mailtoOperacional } from '../lib/brand'
 import './SiteFooter.css'
 
 function SiteFooter() {
+  const { user, loading } = useAuth()
+  const logado = !loading && Boolean(user)
+
   return (
     <footer className="site-footer">
       <div className="site-footer-wrap">
@@ -13,10 +17,16 @@ function SiteFooter() {
 
           <div className="site-footer-col">
             <h3>Sistema</h3>
-            <Link to="/cotacao">Cotação</Link>
-            <Link to="/rastrear">Rastrear encomenda</Link>
-            <Link to="/cidades-atendidas">Cidades atendidas</Link>
-            <Link to="/painel">Painel</Link>
+            {logado ? (
+              <>
+                <Link to="/cotacao">Cotação</Link>
+                <Link to="/rastrear">Rastrear encomenda</Link>
+                <Link to="/cidades-atendidas">Cidades atendidas</Link>
+                <Link to="/painel">Painel</Link>
+              </>
+            ) : (
+              <Link to="/login">Entrar ou cadastrar</Link>
+            )}
           </div>
 
           <div className="site-footer-col">

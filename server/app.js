@@ -9,6 +9,7 @@ import { buscarCidadesPorNome, listarCidadesPorUf, listarUfsCobertura } from './
 import { sincronizarCoberturaSsw } from './coberturaSsw.js'
 import {
   exigirMaster,
+  exigirUsuario,
   podePersistirCotacao,
   salvarColetaHistorico,
   salvarCotacaoHistorico,
@@ -32,7 +33,11 @@ app.get('/api/health', (_req, res) => {
   res.json({ ok: true })
 })
 
-app.get('/api/transportadoras', (_req, res) => {
+app.get('/api/transportadoras', async (req, res) => {
+  const auth = await exigirUsuario(req)
+  if (!auth.ok) {
+    return res.status(auth.status).json({ transportadoras: [], mensagem: auth.mensagem })
+  }
   res.json({ transportadoras: publicCarrierList() })
 })
 
@@ -92,6 +97,11 @@ app.post('/api/veiculos/reivindicar', async (req, res) => {
 
 app.get('/api/mercadorias', async (req, res) => {
   try {
+    const auth = await exigirUsuario(req)
+    if (!auth.ok) {
+      return res.status(auth.status).json({ erro: -1, mensagem: auth.mensagem, mercadorias: [] })
+    }
+
     const { cnpjPagador, transportadoraId } = req.query
     if (!cnpjPagador) {
       return res.status(400).json({ erro: -1, mensagem: 'Informe o CNPJ do pagador', mercadorias: [] })
@@ -133,6 +143,15 @@ app.post('/api/cidades/sincronizar-ssw', async (req, res) => {
 
 app.get('/api/cidades', async (req, res) => {
   try {
+    const auth = await exigirUsuario(req)
+    if (!auth.ok) {
+      return res.status(auth.status).json({
+        sucesso: false,
+        mensagem: auth.mensagem,
+        cidades: [],
+      })
+    }
+
     const uf = String(req.query.uf || '').trim()
     const cidade = String(req.query.cidade || '').trim()
     const listarUfs = String(req.query.meta || '') === 'ufs'
@@ -169,6 +188,15 @@ app.get('/api/cidades', async (req, res) => {
 
 app.post('/api/rastreio', async (req, res) => {
   try {
+    const auth = await exigirUsuario(req)
+    if (!auth.ok) {
+      return res.status(auth.status).json({
+        sucesso: false,
+        mensagem: auth.mensagem,
+        documentos: [],
+      })
+    }
+
     const body = req.body || {}
     const modo = body.modo === 'documento' ? 'documento' : 'danfe'
 
@@ -239,6 +267,16 @@ app.post('/api/coleta', async (req, res) => {
 
 app.post('/api/cotacao', async (req, res) => {
   try {
+    const auth = await exigirUsuario(req)
+    if (!auth.ok) {
+      return res.status(auth.status).json({
+        erro: -1,
+        mensagem: auth.mensagem,
+        sucesso: false,
+        ofertas: [],
+      })
+    }
+
     const body = req.body || {}
     const required = ['cnpjPagador', 'cepOrigem', 'cepDestino', 'valorNF', 'quantidade']
     const missing = required.filter((field) => !body[field] && body[field] !== 0)

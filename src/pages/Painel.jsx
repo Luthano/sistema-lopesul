@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, Navigate, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
+import { authFetch } from '../lib/authFetch'
 import { isProfileComplete } from '../lib/profile'
 import { UFS_ATENDIDAS } from '../lib/ufsAtendidas'
 import RastreioPanel from '../components/RastreioPanel'
@@ -146,7 +147,7 @@ function PainelCidades() {
 
   useEffect(() => {
     let cancelled = false
-    fetch('/api/cidades?meta=ufs')
+    authFetch('/api/cidades?meta=ufs')
       .then((res) => res.json())
       .then((data) => {
         if (!cancelled && Array.isArray(data.ufs)) setUfs(data.ufs)

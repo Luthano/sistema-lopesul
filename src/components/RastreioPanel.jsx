@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { authFetch } from '../lib/authFetch'
 import './RastreioPanel.css'
 
 function onlyDigits(value) {
@@ -71,7 +72,7 @@ function RastreioPanel() {
 
     setLoading(true)
     try {
-      const response = await fetch('/api/rastreio', {
+      const response = await authFetch('/api/rastreio', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(
