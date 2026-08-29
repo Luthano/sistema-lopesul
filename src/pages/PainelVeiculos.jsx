@@ -118,16 +118,6 @@ function PainelVeiculos({ isMaster }) {
 
   return (
     <section className="painel-admin veiculos-admin">
-      <header className="painel-admin-head">
-        <div>
-          <p>
-            {isMaster
-              ? 'Analise cadastros de veículos parceiros e atualize o status.'
-              : 'Acompanhe e edite os veículos vinculados à sua conta.'}
-          </p>
-        </div>
-      </header>
-
       {erro ? (
         <p className="auth-alert" role="alert">
           {erro}

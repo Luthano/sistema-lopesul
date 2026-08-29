@@ -27,9 +27,9 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  border: 1px solid var(--line);
+  border: 1.5px solid var(--btn);
   background: #fff;
-  color: var(--brand-deep);
+  color: var(--btn-ink);
   border-radius: 999px;
   padding: 8px 12px 8px 14px;
   font-weight: 700;
@@ -45,14 +45,14 @@
 }
 
 .user-filters .is-active {
-  background: var(--brand-deep);
-  border-color: var(--brand-deep);
-  color: #fff;
+  background: var(--btn);
+  border-color: var(--btn);
+  color: var(--btn-ink);
 }
 
 .user-filters .is-active span {
-  background: rgba(255, 255, 255, 0.16);
-  color: #fff;
+  background: rgba(17, 17, 17, 0.08);
+  color: var(--btn-ink);
 }
 
 .user-cards {
@@ -222,14 +222,15 @@
 
 .user-card-actions .is-approve {
   border: 0;
-  background: var(--brand-deep);
-  color: #fff;
+  background: var(--btn);
+  color: var(--btn-ink);
+  box-shadow: var(--btn-shadow);
 }
 
 .user-card-actions .is-reject {
-  border: 1px solid var(--brand);
+  border: 1.5px solid var(--btn);
   background: #fff;
-  color: var(--brand);
+  color: var(--btn-ink);
 }
 
 .user-card-actions .is-delete {
@@ -293,15 +294,16 @@
 }
 
 .user-confirm-cancel {
-  border: 1px solid var(--line);
+  border: 1.5px solid var(--btn);
   background: #fff;
-  color: var(--brand-deep);
+  color: var(--btn-ink);
 }
 
 .user-confirm-ok {
   border: 0;
-  background: var(--brand-deep);
-  color: #fff;
+  background: var(--btn);
+  color: var(--btn-ink);
+  box-shadow: var(--btn-shadow);
 }
 
 .user-confirm-danger {

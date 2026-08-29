@@ -136,11 +136,6 @@ function PainelCadastro({ profile, canDelete = false, onSaved }) {
       <header className="painel-cadastro-head">
         <div>
           <h2>Meus dados</h2>
-          <p className="auth-copy">
-            {editing
-              ? 'Atualize suas informações sempre que precisar.'
-              : 'Estes dados são usados para liberar e identificar suas cotações.'}
-          </p>
         </div>
         {!editing && (
           <button

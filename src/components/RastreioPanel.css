@@ -26,8 +26,8 @@
 }
 
 .rastreio-modes button.is-active {
-  background: var(--brand-deep);
-  color: #fff;
+  background: var(--btn);
+  color: var(--btn-ink);
 }
 
 .rastreio-form {
@@ -78,16 +78,12 @@
   padding: 10px 16px;
   border: none;
   border-radius: 10px;
-  background: var(--brand);
-  color: #fff;
+  background: var(--btn);
+  color: var(--btn-ink);
   font-weight: 700;
   font-size: 0.88rem;
   cursor: pointer;
-  box-shadow: 0 8px 18px rgba(72, 213, 255, 0.28);
-}
-
-.rastreio-form .landing-cta:hover:not(:disabled) {
-  filter: brightness(1.05);
+  box-shadow: var(--btn-shadow);
 }
 
 .rastreio-form .landing-cta:disabled {

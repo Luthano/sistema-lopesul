@@ -331,9 +331,6 @@ function PainelCidadesAdmin() {
       <div className="cob-grid">
         <form className="cob-card" onSubmit={handleAddUma}>
           <h3>Adicionar cidade</h3>
-          <p className="cob-hint">
-            Em {uf} · {carrier ? `${carrier.nome} (${carrier.sigla})` : '—'}
-          </p>
           <input
             value={novaCidade}
             onChange={(e) => setNovaCidade(e.target.value)}
@@ -347,7 +344,6 @@ function PainelCidadesAdmin() {
 
         <form className="cob-card" onSubmit={handleAddLote}>
           <h3>Importar em lote</h3>
-          <p className="cob-hint">Uma cidade por linha (ou separadas por vírgula).</p>
           <textarea
             value={lote}
             onChange={(e) => setLote(e.target.value)}
@@ -362,9 +358,6 @@ function PainelCidadesAdmin() {
 
         <div className="cob-card">
           <h3>Sincronizar do SSW</h3>
-          <p className="cob-hint">
-            Lê a malha pública da Lopesul no SSW (área atendida) e substitui as cidades cadastradas.
-          </p>
           <button
             type="button"
             className="painel-section-cta"

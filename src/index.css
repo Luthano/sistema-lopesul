@@ -12,8 +12,13 @@
   --brand-deep: #093d90;
   --brand-deeper: #062456;
   --accent: #e6fa00;
-  --accent-ink: #1a202c;
+  --accent-ink: #111111;
   --accent-soft: #f9f79a;
+  --btn: #e6fa00;
+  --btn-ink: #111111;
+  --btn-hover: #d4e800;
+  --btn-shadow: 0 10px 24px rgba(180, 170, 0, 0.22);
+  --btn-shadow-hover: 0 14px 30px rgba(150, 140, 0, 0.32);
   --ok: #1f7a4d;
   --ok-soft: #e6f6ee;
   --warn: #9a6b00;
@@ -105,22 +110,27 @@ a.button,
 .painel-section-cta:hover:not(:disabled):not(.is-ghost),
 .btn-primary:hover:not(:disabled),
 .btn-coleta:hover:not(:disabled),
-.landing-cta:hover:not(:disabled):not(.landing-cta-outline),
+.landing-cta:hover:not(:disabled),
 .cidades-cta:hover:not(:disabled),
 .auth-submit:hover:not(:disabled),
 .veiculo-btn:hover:not(:disabled),
 .etq-btn.is-primary:hover:not(:disabled),
-.etq-btn.is-solid:hover:not(:disabled) {
-  filter: brightness(1.06);
-  transform: translateY(-1px);
-}
-
-.painel-section-cta:hover:not(:disabled):not(.is-ghost),
-.btn-primary:hover:not(:disabled),
-.cidades-cta:hover:not(:disabled),
-.auth-submit:hover:not(:disabled),
-.veiculo-btn:hover:not(:disabled) {
-  box-shadow: 0 12px 26px rgba(72, 213, 255, 0.35);
+.etq-btn.is-solid:hover:not(:disabled),
+.user-card-actions .is-approve:hover:not(:disabled),
+.user-confirm-ok:hover:not(:disabled),
+.cotacao-bloqueio-link:hover,
+.oferta-select.is-active:hover,
+.oferta-select:hover,
+.painel-login-chip:hover:not(:disabled),
+.painel-card.is-primary:hover,
+.user-filters .is-active:hover,
+.rastreio-modes button.is-active:hover,
+.menu-toggle:hover {
+  background-color: var(--btn-hover);
+  color: var(--btn-ink);
+  filter: none;
+  transform: translateY(-2px);
+  box-shadow: var(--btn-shadow-hover);
 }
 
 .painel-section-cta.is-ghost:hover:not(:disabled),
@@ -130,9 +140,17 @@ a.button,
 .btn-ghost:hover:not(:disabled),
 .veiculo-btn-ghost:hover:not(:disabled),
 .etq-btn.is-ghost:hover:not(:disabled),
-.etq-btn:hover:not(:disabled):not(.is-primary):not(.is-solid) {
-  background-color: #f3f4f6;
-  transform: translateY(-1px);
+.etq-btn:hover:not(:disabled):not(.is-primary):not(.is-solid),
+.user-confirm-cancel:hover:not(:disabled),
+.user-card-actions .is-reject:hover:not(:disabled),
+.user-filters button:hover:not(.is-active),
+.rastreio-modes button:hover:not(.is-active),
+.painel-card.is-action:hover:not(.is-primary) {
+  background-color: var(--btn);
+  border-color: var(--btn);
+  color: var(--btn-ink);
+  transform: translateY(-2px);
+  box-shadow: var(--btn-shadow);
 }
 
 .painel-danger-btn:hover:not(:disabled) {
@@ -141,7 +159,10 @@ a.button,
 }
 
 .landing-cta-outline:hover:not(:disabled) {
-  transform: translateY(-1px);
+  background-color: var(--btn-hover);
+  color: var(--btn-ink);
+  transform: translateY(-2px);
+  box-shadow: var(--btn-shadow-hover);
 }
 
 .auth-switch:hover:not(:disabled),

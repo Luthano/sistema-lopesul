@@ -83,8 +83,8 @@
 }
 
 .tab:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.12);
+  color: var(--btn-ink);
+  background: var(--btn);
 }
 
 .tab.is-active,
@@ -177,7 +177,7 @@
     justify-self: end;
     border: 0;
     border-radius: 12px;
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--btn);
     cursor: pointer;
     z-index: 2;
   }
@@ -187,7 +187,7 @@
     width: 18px;
     height: 2px;
     border-radius: 999px;
-    background: #fff;
+    background: var(--btn-ink);
     transition: transform 0.2s ease, opacity 0.2s ease;
   }
 
@@ -256,9 +256,14 @@
     background: #f4f6fa;
   }
 
+  .menu-mobile-link:hover {
+    background: var(--btn);
+    color: var(--btn-ink);
+  }
+
   .menu-mobile-link.is-active {
-    background: var(--brand-deep);
-    color: #fff;
+    background: var(--btn);
+    color: var(--btn-ink);
   }
 
   .page-shell {

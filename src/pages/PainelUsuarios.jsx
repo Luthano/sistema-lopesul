@@ -201,12 +201,6 @@ function PainelUsuarios({ masterId, onChanged }) {
 
   return (
     <section className="painel-admin">
-      <header className="painel-admin-head">
-        <div>
-          <p>Revise o cadastro e libere o acesso às cotações.</p>
-        </div>
-      </header>
-
       <div className="user-filters" role="tablist" aria-label="Filtrar usuários">
         {FILTROS.map((item) => (
           <button
@@ -274,15 +268,8 @@ function PainelUsuarios({ masterId, onChanged }) {
                   <Field label="WhatsApp" value={formatPhone(usuario.whatsapp)} />
                 </dl>
 
-                {isMasterAccount ? (
-                  <p className="user-card-note">Conta master — sem ação de aprovação.</p>
-                ) : (
+                {isMasterAccount ? null : (
                   <footer className="user-card-footer">
-                    {!completo && usuario.status !== 'rejected' ? (
-                      <p>Este usuário ainda não concluiu o cadastro.</p>
-                    ) : (
-                      <p>Confira os dados antes de liberar as cotações.</p>
-                    )}
                     <div className="user-card-actions">
                       <button
                         type="button"

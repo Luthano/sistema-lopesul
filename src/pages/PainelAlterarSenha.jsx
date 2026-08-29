@@ -68,7 +68,6 @@ function PainelAlterarSenha() {
       <header className="painel-cadastro-head">
         <div>
           <h2>Senha de acesso</h2>
-          <p className="auth-copy">Qualquer usuário logado pode trocar a própria senha.</p>
         </div>
       </header>
 

@@ -355,8 +355,7 @@ function CidadesAtendidas() {
         <section className="cidades-map">
           <div className="cidades-wrap cidades-map-grid">
             <Reveal className="cidades-map-copy">
-              <h1>A logística acelerada que faz acontecer.</h1>
-              <p className="cidades-map-label">Consulte a rota atendida:</p>
+              <h1>Cidades atendidas</h1>
               <form className="cidades-map-search cidades-map-search-rota" onSubmit={handlePesquisar}>
                 <fieldset className="cidades-rota-group">
                   <legend>Saída</legend>

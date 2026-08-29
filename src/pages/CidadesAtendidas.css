@@ -285,18 +285,14 @@
   padding: 10px 14px;
   border-radius: 999px;
   border: none;
-  background: var(--brand-red);
-  color: #fff;
+  background: var(--btn);
+  color: var(--btn-ink);
   font-weight: 700;
   font-size: 0.84rem;
   line-height: 1.2;
   white-space: nowrap;
-  box-shadow: 0 8px 18px rgba(72, 213, 255, 0.28);
+  box-shadow: var(--btn-shadow);
   cursor: pointer;
-}
-
-.cidades-cta:hover:not(:disabled) {
-  filter: brightness(1.05);
 }
 
 .cidades-cta:disabled {

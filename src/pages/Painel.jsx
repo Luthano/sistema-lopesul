@@ -86,7 +86,6 @@ function resolveSection(pathname) {
 function PainelInicio({
   isApproved,
   canUseCotacao,
-  profileComplete,
   busy,
   resumo,
   onNavigate,
@@ -96,7 +95,6 @@ function PainelInicio({
       <header className="painel-section-head">
         <div>
           <h2>Resumo da operação</h2>
-          <p>Acompanhe atalhos e o movimento recente da sua conta.</p>
         </div>
       </header>
 
@@ -104,25 +102,17 @@ function PainelInicio({
         {canUseCotacao ? (
           <Link to="/cotacao" className="painel-card is-action is-primary">
             <strong>Nova cotação</strong>
-            <span>Calcular frete e gravar no SSW</span>
           </Link>
         ) : (
           <button type="button" className="painel-card is-action" onClick={() => onNavigate('cadastro')}>
             <strong>Nova cotação</strong>
-            <span>
-              {profileComplete
-                ? 'Aguarde a aprovação do master para cotar.'
-                : 'Complete o cadastro para liberar as cotações.'}
-            </span>
           </button>
         )}
         <button type="button" className="painel-card is-action" onClick={() => onNavigate('rastreamento')}>
           <strong>Rastrear</strong>
-          <span>Localizar encomenda por DANFE ou NF</span>
         </button>
         <button type="button" className="painel-card is-action" onClick={() => onNavigate('cidades')}>
           <strong>Cidades</strong>
-          <span>Consultar cobertura Lopesul</span>
         </button>
       </section>
 
@@ -135,17 +125,15 @@ function PainelInicio({
           >
             <span>Cotações</span>
             <strong>{busy ? '…' : resumo.cotacoes}</strong>
-            <small>Ver histórico</small>
           </button>
           <article className="painel-card is-stat">
             <span>Coletas</span>
             <strong>{busy ? '…' : resumo.coletas}</strong>
-            <small>Total na conta</small>
           </article>
           <article className="painel-card is-stat">
             <span>Último frete</span>
             <strong>{busy ? '…' : formatMoney(resumo.ultimoFrete)}</strong>
-            <small>{resumo.ultimaData ? formatDate(resumo.ultimaData) : 'Sem registros'}</small>
+            {resumo.ultimaData ? <small>{formatDate(resumo.ultimaData)}</small> : null}
           </article>
         </section>
       ) : null}
@@ -174,7 +162,6 @@ function PainelCidades() {
       <header className="painel-section-head">
         <div>
           <h2>Cobertura Lopesul</h2>
-          <p>Estados com municípios cadastrados e consulta completa.</p>
         </div>
         <Link to="/cidades-atendidas" className="painel-section-cta">
           Abrir consulta completa
@@ -185,7 +172,6 @@ function PainelCidades() {
         {(ufs.length ? ufs : UFS_ATENDIDAS.slice(0, 8)).map((uf) => (
           <Link key={uf} to="/cidades-atendidas" className="painel-uf-card">
             <strong>{uf}</strong>
-            <span>Ver cidades</span>
           </Link>
         ))}
       </div>
@@ -199,24 +185,20 @@ function PainelAtendimento() {
       <header className="painel-section-head">
         <div>
           <h2>Fale com a Lopesul</h2>
-          <p>Canais para suporte comercial e operacional.</p>
         </div>
       </header>
 
       <div className="painel-support-grid">
         <article className="painel-support-card">
           <strong>Comercial</strong>
-          <p>Cotações, tabelas e onboarding de clientes.</p>
           <a href={mailtoComercial()}>{BRAND.emailComercial}</a>
         </article>
         <article className="painel-support-card">
           <strong>Operacional</strong>
-          <p>Coletas, prazos e ocorrências de transporte.</p>
           <a href={mailtoOperacional()}>{BRAND.emailOperacional}</a>
         </article>
         <article className="painel-support-card">
           <strong>Site</strong>
-          <p>Conteúdo institucional e canais oficiais.</p>
           <a href={BRAND.siteUrl} target="_blank" rel="noreferrer">
             {BRAND.siteLabel}
           </a>
@@ -233,7 +215,6 @@ function Painel() {
     signOut,
     isMaster,
     isApproved,
-    isPending,
     isRejected,
     canUseCotacao,
     profile,
@@ -426,7 +407,7 @@ function Painel() {
 
   return (
     <div className="page-shell">
-    <div className="page-block painel-page">
+    <div className="painel-page">
     <div className="painel-admin-shell">
       {avisoCadastroAberto ? (
         <div className="painel-aviso-backdrop" role="presentation" onClick={fecharAvisoCadastro}>
@@ -457,11 +438,7 @@ function Painel() {
 
       <aside className={`painel-sidebar ${menuOpen ? 'is-open' : ''}`}>
         <div className="painel-sidebar-brand">
-          <img src={BRAND.icon} alt="" />
-          <div>
-            <strong>{BRAND.name}</strong>
-            <span>{isMaster ? 'Painel master' : 'Painel do cliente'}</span>
-          </div>
+          <img src={BRAND.logo} alt={BRAND.name} />
         </div>
 
         <nav className="painel-nav" aria-label="Menu do painel">
@@ -529,10 +506,6 @@ function Painel() {
             </p>
           )}
 
-          {isPending && profileComplete && section === 'inicio' && (
-            <p className="auth-info">Dados enviados. Aguarde a aprovação do master para usar as cotações.</p>
-          )}
-
           {erro && (
             <p className="auth-alert" role="alert">
               {erro}
@@ -543,7 +516,6 @@ function Painel() {
             <PainelInicio
               isApproved={isApproved}
               canUseCotacao={canUseCotacao}
-              profileComplete={profileComplete}
               busy={busy}
               resumo={resumo}
               onNavigate={goSection}
@@ -555,7 +527,6 @@ function Painel() {
               <header className="painel-section-head">
                 <div>
                   <h2>Localize sua encomenda</h2>
-                  <p>Consulte por chave DANFE ou NF + CPF/CNPJ.</p>
                 </div>
               </header>
               <RastreioPanel />
@@ -565,7 +536,6 @@ function Painel() {
           {!isRejected && section === 'cotacoes' && (
             <PainelCotacoes
               canUseCotacao={canUseCotacao}
-              profileComplete={profileComplete}
               isApproved={isApproved}
               busyResumo={busy}
               resumo={resumo}
@@ -579,7 +549,6 @@ function Painel() {
               <header className="painel-section-head">
                 <div>
                   <h2>Dados da conta</h2>
-                  <p>Mantenha telefone, documentos e endereço atualizados.</p>
                 </div>
               </header>
               <PainelCadastro profile={profile} canDelete={!isMaster} onSaved={refreshProfile} />

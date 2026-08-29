@@ -58,7 +58,6 @@ function extrairDetalhes(item) {
 
 function PainelCotacoes({
   canUseCotacao,
-  profileComplete,
   isApproved,
   busyResumo,
   resumo,
@@ -106,7 +105,6 @@ function PainelCotacoes({
       <header className="painel-section-head">
         <div>
           <h2>Frete e coleta</h2>
-          <p>Simule valores e acompanhe o histórico da conta.</p>
         </div>
         {canUseCotacao ? (
           <Link to="/cotacao" className="painel-section-cta">
@@ -119,27 +117,17 @@ function PainelCotacoes({
         <article className="painel-card is-stat is-active-stat" aria-current="true">
           <span>Cotações</span>
           <strong>{isApproved ? (busyResumo ? '…' : resumo.cotacoes) : '—'}</strong>
-          <small>Total na conta</small>
         </article>
         <article className="painel-card is-stat">
           <span>Coletas</span>
           <strong>{isApproved ? (busyResumo ? '…' : resumo.coletas) : '—'}</strong>
-          <small>Total na conta</small>
         </article>
         <article className="painel-card is-stat">
           <span>Último frete</span>
           <strong>{isApproved ? (busyResumo ? '…' : formatMoney(resumo.ultimoFrete)) : '—'}</strong>
-          <small>{resumo.ultimaData ? formatDate(resumo.ultimaData) : 'Sem registros'}</small>
+          {resumo.ultimaData ? <small>{formatDate(resumo.ultimaData)}</small> : null}
         </article>
       </section>
-
-      {!canUseCotacao && (
-        <p className="auth-info">
-          {profileComplete
-            ? 'Sua conta ainda não foi aprovada para cotar.'
-            : 'Complete o cadastro para solicitar acesso às cotações.'}
-        </p>
-      )}
 
       {isApproved ? (
         <section className="cotacoes-hist" aria-label="Lista de cotações">
