@@ -173,6 +173,11 @@
   box-shadow: var(--shadow);
 }
 
+.atend-chat-head > div {
+  min-width: 0;
+  flex: 1;
+}
+
 .atend-fila-head h2,
 .atend-chat-head h2 {
   margin: 0;
@@ -190,6 +195,15 @@
   line-height: 1.35;
 }
 
+.atend-fila-grupo {
+  margin: 10px 14px 4px;
+  color: var(--painel-muted, #6b7280);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
 .atend-fila-lista {
   list-style: none;
   margin: 0;
@@ -198,14 +212,20 @@
   flex: 1;
 }
 
-.atend-fila-lista button {
-  width: 100%;
+.atend-fila-lista li {
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid #eef1f4;
+}
+
+.atend-fila-abrir {
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 12px 14px;
   border: 0;
-  border-bottom: 1px solid #eef1f4;
   background: transparent;
   color: inherit;
   font: inherit;
@@ -213,12 +233,108 @@
   cursor: pointer;
 }
 
-.atend-fila-lista button:hover {
+.atend-fila-abrir:hover {
   background: #f6f8fb;
 }
 
-.atend-fila-lista button.is-active {
+.atend-fila-abrir.is-active {
   background: #e8eef8;
+}
+
+.atend-fila-apagar,
+.atend-apagar {
+  flex: 0 0 auto;
+  border: 0;
+  background: transparent;
+  color: #b91c1c;
+  cursor: pointer;
+}
+
+.atend-fila-apagar {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  padding: 0;
+}
+
+.atend-fila-apagar:hover,
+.atend-apagar:hover {
+  color: #991b1b;
+}
+
+.atend-apagar {
+  padding: 6px 10px;
+  border: 1px solid #fecaca;
+  border-radius: 999px;
+  background: #fff;
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.atend-confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.48);
+}
+
+.atend-confirm-modal {
+  width: min(100%, 400px);
+  display: grid;
+  gap: 12px;
+  padding: 20px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.22);
+}
+
+.atend-confirm-modal h3 {
+  margin: 0;
+  color: var(--brand-deep);
+  font-size: 0.88rem;
+}
+
+.atend-confirm-modal p {
+  margin: 0;
+  color: var(--painel-muted, #6b7280);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.atend-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.atend-confirm-actions button {
+  border-radius: 999px;
+  padding: 8px 14px;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.atend-confirm-actions button:first-child {
+  border: 1px solid var(--painel-line, #e5e7eb);
+  background: #fff;
+  color: var(--brand-deep);
+}
+
+.atend-confirm-actions .is-danger {
+  border: 0;
+  background: #dc2626;
+  color: #fff;
+}
+
+.atend-confirm-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .atend-fila-copy {

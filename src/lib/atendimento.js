@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from './supabase'
+import { apagarArquivosConversa } from './atendimentoAnexos'
+import { isPerfilInterno, tiposContaDoSetor } from './tiposConta'
 
 export const SETORES_ATENDIMENTO = [
   { id: 'financeiro', label: 'Financeiro' },
   { id: 'comercial', label: 'Comercial' },
   { id: 'agencias', label: 'Agências' },
   { id: 'administrativo', label: 'Administrativo' },
+  { id: 'suporte', label: 'Suporte' },
 ]
 
 export function labelSetor(setor) {
@@ -18,42 +21,73 @@ export function previewMensagem(texto) {
 }
 
 const CONVERSA_CAMPOS =
-  'id, cliente_id, setor, status, ultima_mensagem_at, preview, nao_lidas_cliente, nao_lidas_master'
+  'id, cliente_id, atendente_id, setor, status, ultima_mensagem_at, preview, nao_lidas_cliente, nao_lidas_master'
 
-export async function buscarConversaCliente(clienteId, setor) {
+const CONVERSA_CLIENTE =
+  `${CONVERSA_CAMPOS}, atendente:atendente_id (id, nome_completo, email, tipo_conta, role)`
+
+const CONVERSA_FILA =
+  `${CONVERSA_CAMPOS}, profiles:cliente_id (id, nome_completo, email, tipo_conta, role), atendente:atendente_id (id, nome_completo, email, tipo_conta, role)`
+
+export function nomeAtendente(perfil) {
+  const pessoa = Array.isArray(perfil) ? perfil[0] : perfil
+  return pessoa?.nome_completo || pessoa?.email || 'Atendente'
+}
+
+export async function listarAtendentes(setor, excluirId) {
+  const tipos = tiposContaDoSetor(setor)
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, nome_completo, email, tipo_conta, role')
+    .eq('status', 'approved')
+    .in('tipo_conta', tipos)
+    .order('nome_completo', { ascending: true, nullsFirst: false })
+
+  if (error) throw error
+  return (data || []).filter((item) => item.id !== excluirId && isPerfilInterno(item))
+}
+
+export async function buscarConversaEntre(userA, userB, setor) {
   const { data, error } = await supabase
     .from('atendimento_conversas')
-    .select(CONVERSA_CAMPOS)
-    .eq('cliente_id', clienteId)
+    .select(CONVERSA_FILA)
     .eq('setor', setor)
+    .or(
+      `and(cliente_id.eq.${userA},atendente_id.eq.${userB}),and(cliente_id.eq.${userB},atendente_id.eq.${userA})`,
+    )
     .maybeSingle()
 
   if (error) throw error
   return data
 }
 
+export async function buscarConversaCliente(clienteId, setor, atendenteId) {
+  return buscarConversaEntre(clienteId, atendenteId, setor)
+}
+
 export async function listarConversasCliente(clienteId) {
   const { data, error } = await supabase
     .from('atendimento_conversas')
-    .select(CONVERSA_CAMPOS)
+    .select(CONVERSA_CLIENTE)
     .eq('cliente_id', clienteId)
 
   if (error) throw error
   return data || []
 }
 
-export async function garantirConversaCliente(clienteId, setor) {
-  const existente = await buscarConversaCliente(clienteId, setor)
+export async function garantirConversaCliente(clienteId, setor, atendenteId) {
+  if (!atendenteId) throw new Error('Escolha com quem deseja falar.')
+  const existente = await buscarConversaEntre(clienteId, atendenteId, setor)
   if (existente) return existente
 
   const { data, error } = await supabase
     .from('atendimento_conversas')
-    .insert({ cliente_id: clienteId, setor, status: 'aberta' })
-    .select(CONVERSA_CAMPOS)
+    .insert({ cliente_id: clienteId, setor, atendente_id: atendenteId, status: 'aberta' })
+    .select(CONVERSA_FILA)
     .single()
 
   if (error?.code === '23505') {
-    return buscarConversaCliente(clienteId, setor)
+    return buscarConversaEntre(clienteId, atendenteId, setor)
   }
   if (error) throw error
   return data
@@ -62,13 +96,25 @@ export async function garantirConversaCliente(clienteId, setor) {
 export async function listarConversasMaster() {
   const { data, error } = await supabase
     .from('atendimento_conversas')
-    .select(
-      'id, cliente_id, setor, status, ultima_mensagem_at, preview, nao_lidas_cliente, nao_lidas_master, profiles:cliente_id (id, nome_completo, email)',
-    )
+    .select(CONVERSA_FILA)
     .order('ultima_mensagem_at', { ascending: false, nullsFirst: false })
 
   if (error) throw error
   return data || []
+}
+
+export function outroDaConversa(item, userId) {
+  if (item?.cliente_id === userId) return item.atendente
+  return item?.profiles
+}
+
+export function conversaComPessoa(conversas, userId, pessoaId, setor) {
+  return conversas.find((item) => {
+    if (setor && item.setor !== setor) return false
+    const outro = outroDaConversa(item, userId)
+    const outroId = Array.isArray(outro) ? outro[0]?.id : outro?.id
+    return outroId === pessoaId || item.atendente_id === pessoaId || item.cliente_id === pessoaId
+  })
 }
 
 const MENSAGEM_CAMPOS =
@@ -108,6 +154,13 @@ export async function enviarMensagem({ conversaId, autorId, papel, corpo, anexo 
 
   if (error) throw error
   return data
+}
+
+export async function excluirConversa(conversaId) {
+  if (!conversaId) throw new Error('Conversa inválida.')
+  await apagarArquivosConversa(conversaId)
+  const { error } = await supabase.from('atendimento_conversas').delete().eq('id', conversaId)
+  if (error) throw error
 }
 
 export async function marcarLida(conversaId, isMaster) {

@@ -75,7 +75,7 @@ create table if not exists public.profiles (
   email text not null,
   status text not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
   role text not null default 'user' check (role in ('user', 'master')),
-  tipo_conta text not null default 'cliente' check (tipo_conta in ('cliente', 'atendimento', 'financeiro', 'comercial', 'agencias')),
+  tipo_conta text not null default 'cliente' check (tipo_conta in ('cliente', 'suporte', 'atendimento', 'financeiro', 'comercial', 'agencias')),
   created_at timestamptz not null default now(),
   approved_at timestamptz,
   approved_by uuid references auth.users (id)
@@ -1122,7 +1122,7 @@ begin
     drop constraint if exists atendimento_conversas_setor_check;
   alter table public.atendimento_conversas
     add constraint atendimento_conversas_setor_check
-    check (setor in ('financeiro', 'agencias', 'administrativo', 'comercial'));
+    check (setor in ('financeiro', 'agencias', 'administrativo', 'comercial', 'suporte'));
 exception
   when others then null;
 end $$;
@@ -1322,7 +1322,7 @@ alter table public.profiles
 
 alter table public.profiles
   add constraint profiles_tipo_conta_check
-  check (tipo_conta in ('cliente', 'atendimento', 'financeiro', 'comercial', 'agencias'));
+  check (tipo_conta in ('cliente', 'suporte', 'atendimento', 'financeiro', 'comercial', 'agencias'));
 
 create or replace function public.protect_profile_fields()
 returns trigger
@@ -1367,7 +1367,7 @@ stable
 security definer
 set search_path = public
 as $$
-  select public.tipo_conta_atual() in ('atendimento', 'financeiro', 'comercial', 'agencias');
+  select public.tipo_conta_atual() in ('suporte', 'atendimento', 'financeiro', 'comercial', 'agencias');
 $$;
 
 create or replace function public.pode_atender(p_setor text)
@@ -1381,7 +1381,7 @@ as $$
     public.is_master()
     or public.tipo_conta_atual() = 'atendimento'
     or (
-      public.tipo_conta_atual() in ('financeiro', 'comercial', 'agencias')
+      public.tipo_conta_atual() in ('suporte', 'financeiro', 'comercial', 'agencias')
       and public.tipo_conta_atual() = p_setor
     );
 $$;
@@ -1396,7 +1396,7 @@ begin
     drop constraint if exists atendimento_conversas_setor_check;
   alter table public.atendimento_conversas
     add constraint atendimento_conversas_setor_check
-    check (setor in ('financeiro', 'agencias', 'administrativo', 'comercial'));
+    check (setor in ('financeiro', 'agencias', 'administrativo', 'comercial', 'suporte'));
 exception
   when others then null;
 end $$;
@@ -1509,4 +1509,321 @@ as $$
       and (c.cliente_id = auth.uid() or public.pode_atender(c.setor))
   );
 $$;
+
+-- ========== 019_atendente_conversa.sql ==========
+alter table public.atendimento_conversas
+  add column if not exists atendente_id uuid references public.profiles (id) on delete set null;
+
+drop index if exists public.atendimento_conversas_cliente_setor_uidx;
+
+create unique index if not exists atendimento_conversas_cliente_setor_atendente_uidx
+  on public.atendimento_conversas (cliente_id, setor, atendente_id);
+
+drop policy if exists profiles_select_equipe on public.profiles;
+create policy profiles_select_equipe
+  on public.profiles
+  for select
+  to authenticated
+  using (
+    status = 'approved'
+    and (
+      role = 'master'
+      or tipo_conta in ('suporte', 'atendimento', 'financeiro', 'comercial', 'agencias')
+    )
+  );
+
+create or replace function public.atendimento_conversas_update_guard()
+returns trigger
+language plpgsql
+as $$
+begin
+  if public.is_master() then
+    return new;
+  end if;
+
+  if old.atendente_id = auth.uid() or public.pode_atender(old.setor) then
+    new.cliente_id := old.cliente_id;
+    new.setor := old.setor;
+    new.atendente_id := old.atendente_id;
+    new.status := old.status;
+    new.ultima_mensagem_at := old.ultima_mensagem_at;
+    new.preview := old.preview;
+    new.nao_lidas_cliente := old.nao_lidas_cliente;
+    new.created_at := old.created_at;
+    return new;
+  end if;
+
+  new.cliente_id := old.cliente_id;
+  new.setor := old.setor;
+  new.atendente_id := old.atendente_id;
+  new.status := old.status;
+  new.ultima_mensagem_at := old.ultima_mensagem_at;
+  new.preview := old.preview;
+  new.nao_lidas_master := old.nao_lidas_master;
+  new.created_at := old.created_at;
+  return new;
+end;
+$$;
+
+drop policy if exists atendimento_conversas_select on public.atendimento_conversas;
+drop policy if exists atendimento_conversas_insert on public.atendimento_conversas;
+drop policy if exists atendimento_conversas_update on public.atendimento_conversas;
+drop policy if exists atendimento_mensagens_select on public.atendimento_mensagens;
+drop policy if exists atendimento_mensagens_insert on public.atendimento_mensagens;
+
+create policy atendimento_conversas_select
+  on public.atendimento_conversas
+  for select
+  using (
+    auth.uid() = cliente_id
+    or auth.uid() = atendente_id
+    or public.is_master()
+    or public.pode_atender(setor)
+  );
+
+create policy atendimento_conversas_insert
+  on public.atendimento_conversas
+  for insert
+  with check (auth.uid() = cliente_id and not public.is_master() and not public.is_equipe());
+
+create policy atendimento_conversas_update
+  on public.atendimento_conversas
+  for update
+  using (
+    auth.uid() = cliente_id
+    or auth.uid() = atendente_id
+    or public.is_master()
+    or public.pode_atender(setor)
+  )
+  with check (
+    auth.uid() = cliente_id
+    or auth.uid() = atendente_id
+    or public.is_master()
+    or public.pode_atender(setor)
+  );
+
+create policy atendimento_mensagens_select
+  on public.atendimento_mensagens
+  for select
+  using (
+    exists (
+      select 1
+      from public.atendimento_conversas c
+      where c.id = conversa_id
+        and (
+          c.cliente_id = auth.uid()
+          or c.atendente_id = auth.uid()
+          or public.is_master()
+          or public.pode_atender(c.setor)
+        )
+    )
+  );
+
+create policy atendimento_mensagens_insert
+  on public.atendimento_mensagens
+  for insert
+  with check (
+    autor_id = auth.uid()
+    and (
+      (
+        papel = 'cliente'
+        and not public.is_master()
+        and not public.is_equipe()
+        and exists (
+          select 1
+          from public.atendimento_conversas c
+          where c.id = conversa_id
+            and c.cliente_id = auth.uid()
+        )
+      )
+      or (
+        papel = 'atendente'
+        and exists (
+          select 1
+          from public.atendimento_conversas c
+          where c.id = conversa_id
+            and (
+              c.atendente_id = auth.uid()
+              or public.is_master()
+              or public.pode_atender(c.setor)
+            )
+        )
+      )
+    )
+  );
+
+create or replace function public.atendimento_pode_usar_pasta(object_name text)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from public.atendimento_conversas c
+    where c.id::text = split_part(object_name, '/', 1)
+      and (
+        c.cliente_id = auth.uid()
+        or c.atendente_id = auth.uid()
+        or public.is_master()
+        or public.pode_atender(c.setor)
+      )
+  );
+$$;
+
+-- ========== 020_tipo_suporte.sql ==========
+alter table public.profiles
+  drop constraint if exists profiles_tipo_conta_check;
+
+alter table public.profiles
+  add constraint profiles_tipo_conta_check
+  check (tipo_conta in ('cliente', 'suporte', 'atendimento', 'financeiro', 'comercial', 'agencias'));
+
+create or replace function public.is_equipe()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select public.tipo_conta_atual() in ('suporte', 'atendimento', 'financeiro', 'comercial', 'agencias');
+$$;
+
+create or replace function public.pode_atender(p_setor text)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select
+    public.is_master()
+    or public.tipo_conta_atual() = 'atendimento'
+    or (
+      public.tipo_conta_atual() in ('suporte', 'financeiro', 'comercial', 'agencias')
+      and public.tipo_conta_atual() = p_setor
+    );
+$$;
+
+do $$
+begin
+  alter table public.atendimento_conversas
+    drop constraint if exists atendimento_conversas_setor_check;
+  alter table public.atendimento_conversas
+    add constraint atendimento_conversas_setor_check
+    check (setor in ('financeiro', 'agencias', 'administrativo', 'comercial', 'suporte'));
+exception
+  when others then null;
+end $$;
+
+drop policy if exists profiles_select_equipe on public.profiles;
+create policy profiles_select_equipe
+  on public.profiles
+  for select
+  to authenticated
+  using (
+    status = 'approved'
+    and (
+      role = 'master'
+      or tipo_conta in ('suporte', 'atendimento', 'financeiro', 'comercial', 'agencias')
+    )
+  );
+
+alter table public.profiles disable trigger protect_profile_fields;
+
+update public.profiles
+set tipo_conta = 'suporte'
+where role = 'master';
+
+alter table public.profiles enable trigger protect_profile_fields;
+
+-- ========== 021_apagar_conversa.sql ==========
+grant delete on public.atendimento_conversas to authenticated;
+
+drop policy if exists atendimento_conversas_delete on public.atendimento_conversas;
+create policy atendimento_conversas_delete
+  on public.atendimento_conversas
+  for delete
+  using (
+    auth.uid() = cliente_id
+    or auth.uid() = atendente_id
+    or public.is_master()
+    or public.pode_atender(setor)
+  );
+
+drop policy if exists atendimento_arquivos_delete on storage.objects;
+create policy atendimento_arquivos_delete
+  on storage.objects
+  for delete
+  to authenticated
+  using (
+    bucket_id = 'atendimento'
+    and public.atendimento_pode_usar_pasta(name)
+  );
+
+-- ========== 022_chat_interno.sql ==========
+create or replace function public.eh_interno(p_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from public.profiles p
+    where p.id = p_id
+      and p.status = 'approved'
+      and (
+        p.role = 'master'
+        or p.tipo_conta in ('suporte', 'atendimento', 'financeiro', 'comercial', 'agencias')
+      )
+  );
+$$;
+
+grant execute on function public.eh_interno(uuid) to authenticated;
+
+drop policy if exists atendimento_conversas_insert on public.atendimento_conversas;
+create policy atendimento_conversas_insert
+  on public.atendimento_conversas
+  for insert
+  with check (
+    auth.uid() = cliente_id
+    and atendente_id is not null
+    and atendente_id <> cliente_id
+    and public.eh_interno(atendente_id)
+  );
+
+drop policy if exists atendimento_mensagens_insert on public.atendimento_mensagens;
+create policy atendimento_mensagens_insert
+  on public.atendimento_mensagens
+  for insert
+  with check (
+    autor_id = auth.uid()
+    and (
+      (
+        papel = 'cliente'
+        and exists (
+          select 1
+          from public.atendimento_conversas c
+          where c.id = conversa_id
+            and c.cliente_id = auth.uid()
+        )
+      )
+      or (
+        papel = 'atendente'
+        and exists (
+          select 1
+          from public.atendimento_conversas c
+          where c.id = conversa_id
+            and (
+              c.atendente_id = auth.uid()
+              or public.is_master()
+              or public.pode_atender(c.setor)
+            )
+        )
+      )
+    )
+  );
 

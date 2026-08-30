@@ -115,6 +115,14 @@ export async function enviarArquivoConversa(conversaId, file) {
   }
 }
 
+export async function apagarArquivosConversa(conversaId) {
+  if (!conversaId) return
+  const { data, error } = await supabase.storage.from('atendimento').list(conversaId)
+  if (error || !data?.length) return
+  const caminhos = data.map((item) => `${conversaId}/${item.name}`)
+  await supabase.storage.from('atendimento').remove(caminhos)
+}
+
 export async function urlAssinadaAnexo(path) {
   if (!path) return ''
   const { data, error } = await supabase.storage.from('atendimento').createSignedUrl(path, 3600)
