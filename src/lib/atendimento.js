@@ -70,10 +70,13 @@ export async function listarConversasMaster() {
   return data || []
 }
 
+const MENSAGEM_CAMPOS =
+  'id, conversa_id, autor_id, papel, corpo, tipo, arquivo_path, arquivo_nome, arquivo_mime, arquivo_tamanho, created_at'
+
 export async function listarMensagens(conversaId) {
   const { data, error } = await supabase
     .from('atendimento_mensagens')
-    .select('id, conversa_id, autor_id, papel, corpo, created_at')
+    .select(MENSAGEM_CAMPOS)
     .eq('conversa_id', conversaId)
     .order('created_at', { ascending: true })
 
@@ -81,9 +84,9 @@ export async function listarMensagens(conversaId) {
   return data || []
 }
 
-export async function enviarMensagem({ conversaId, autorId, papel, corpo }) {
+export async function enviarMensagem({ conversaId, autorId, papel, corpo, anexo }) {
   const texto = String(corpo || '').replace(/\s+/g, ' ').trim()
-  if (texto.length < 1) throw new Error('Escreva uma mensagem.')
+  if (!anexo && texto.length < 1) throw new Error('Escreva uma mensagem ou anexe um arquivo.')
   if (texto.length > 2000) throw new Error('A mensagem é longa demais.')
 
   const { data, error } = await supabase
@@ -93,8 +96,13 @@ export async function enviarMensagem({ conversaId, autorId, papel, corpo }) {
       autor_id: autorId,
       papel,
       corpo: texto,
+      tipo: anexo?.tipo || 'texto',
+      arquivo_path: anexo?.path || null,
+      arquivo_nome: anexo?.nome || null,
+      arquivo_mime: anexo?.mime || null,
+      arquivo_tamanho: anexo?.tamanho || null,
     })
-    .select('id, conversa_id, autor_id, papel, corpo, created_at')
+    .select(MENSAGEM_CAMPOS)
     .single()
 
   if (error) throw error

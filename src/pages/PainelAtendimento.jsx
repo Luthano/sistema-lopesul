@@ -11,7 +11,10 @@ import {
   marcarLida,
   SETORES_ATENDIMENTO,
 } from '../lib/atendimento'
+import { enviarArquivoConversa } from '../lib/atendimentoAnexos'
 import { supabase } from '../lib/supabase'
+import AtendimentoComposer from './AtendimentoComposer'
+import AtendimentoMidia from './AtendimentoMidia'
 import './PainelAtendimento.css'
 
 function iniciais(nome) {
@@ -68,7 +71,8 @@ function ChatThread({ mensagens, userId, vazio }) {
         const propria = item.autor_id === userId
         return (
           <li key={item.id} className={propria ? 'is-own' : 'is-other'}>
-            <p>{item.corpo}</p>
+            <AtendimentoMidia item={item} />
+            {item.corpo ? <p>{item.corpo}</p> : null}
             <time dateTime={item.created_at}>{formatarHoraMensagem(item.created_at)}</time>
           </li>
         )
@@ -78,55 +82,6 @@ function ChatThread({ mensagens, userId, vazio }) {
   )
 }
 
-function ChatComposer({ onSend, disabled, placeholder }) {
-  const [texto, setTexto] = useState('')
-  const [enviando, setEnviando] = useState(false)
-
-  async function handleSubmit(event) {
-    event.preventDefault()
-    const corpo = texto.trim()
-    if (!corpo || enviando || disabled) return
-    setEnviando(true)
-    try {
-      await onSend(corpo)
-      setTexto('')
-    } finally {
-      setEnviando(false)
-    }
-  }
-
-  return (
-    <form className="atend-composer" onSubmit={handleSubmit}>
-      <label className="atend-composer-field">
-        <span className="visually-hidden">Mensagem</span>
-        <textarea
-          value={texto}
-          onChange={(e) => setTexto(e.target.value)}
-          placeholder={placeholder}
-          rows={1}
-          maxLength={2000}
-          disabled={enviando || disabled}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter' && !event.shiftKey) {
-              event.preventDefault()
-              event.currentTarget.form?.requestSubmit()
-            }
-          }}
-        />
-      </label>
-      <button
-        type="submit"
-        className="atend-send"
-        disabled={enviando || disabled || !texto.trim()}
-        aria-label={enviando ? 'Enviando' : 'Enviar mensagem'}
-      >
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M3.4 11.2 20 4.5 12.8 21l-1.8-6.6-6.2-1.8 6.2-1.4 4.4-6.2-7.8 4.6Z" />
-        </svg>
-      </button>
-    </form>
-  )
-}
 
 function useMensagens(conversaId) {
   const [mensagens, setMensagens] = useState([])
@@ -219,16 +174,18 @@ function ChatCliente({ user, setor }) {
     return undefined
   }, [conversa?.id, mensagens.length])
 
-  async function handleSend(corpo) {
+  async function handleSend(corpo, arquivo) {
     if (!setor) return
     setErro('')
     const atual = conversa || (await garantirConversaCliente(user.id, setor))
     if (!conversa) setConversa(atual)
+    const anexo = arquivo ? await enviarArquivoConversa(atual.id, arquivo) : null
     const salva = await enviarMensagem({
       conversaId: atual.id,
       autorId: user.id,
       papel: 'cliente',
       corpo,
+      anexo,
     })
     setMensagens((prev) => (prev.some((item) => item.id === salva.id) ? prev : [...prev, salva]))
   }
@@ -260,7 +217,7 @@ function ChatCliente({ user, setor }) {
           />
         )}
       </div>
-      <ChatComposer
+      <AtendimentoComposer
         onSend={handleSend}
         disabled={!setor || carregando}
         placeholder={setor ? `Escreva para ${labelSetor(setor)}` : 'Escolha um setor para escrever'}
@@ -327,14 +284,16 @@ function ChatMaster({ user, setor, onSetor }) {
     return undefined
   }, [selecionadaId, mensagens.length])
 
-  async function handleSend(corpo) {
+  async function handleSend(corpo, arquivo) {
     if (!selecionadaId) return
     setErro('')
+    const anexo = arquivo ? await enviarArquivoConversa(selecionadaId, arquivo) : null
     const salva = await enviarMensagem({
       conversaId: selecionadaId,
       autorId: user.id,
       papel: 'atendente',
       corpo,
+      anexo,
     })
     setMensagens((prev) => (prev.some((item) => item.id === salva.id) ? prev : [...prev, salva]))
   }
@@ -412,7 +371,7 @@ function ChatMaster({ user, setor, onSetor }) {
                 vazio="Aguardando a primeira mensagem deste cliente."
               />
             </div>
-            <ChatComposer onSend={handleSend} placeholder="Responder ao cliente" />
+            <AtendimentoComposer onSend={handleSend} placeholder="Responder ao cliente" />
           </>
         ) : (
           <div className="atend-vazio-painel">
