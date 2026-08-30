@@ -1102,7 +1102,7 @@ exception
 end $$;
 
 grant select, insert, update on public.atendimento_conversas to authenticated;
-grant select, insert on public.atendimento_mensagens to authenticated;
+grant select, insert, update on public.atendimento_mensagens to authenticated;
 
 -- ========== 015_atendimento_setores.sql ==========
 
@@ -1228,6 +1228,7 @@ declare
   rotulo text;
   texto text;
 begin
+  perform set_config('lopesul.atendimento_interno', 'on', true);
   new.corpo := trim(regexp_replace(coalesce(new.corpo, ''), '\s+', ' ', 'g'));
   new.tipo := coalesce(nullif(trim(new.tipo), ''), 'texto');
 
@@ -1782,6 +1783,7 @@ as $$
   );
 $$;
 
+
 grant execute on function public.eh_interno(uuid) to authenticated;
 
 drop policy if exists atendimento_conversas_insert on public.atendimento_conversas;
@@ -1826,4 +1828,166 @@ create policy atendimento_mensagens_insert
       )
     )
   );
+
+-- ========== 023_apagar_mensagem.sql ==========
+grant delete on public.atendimento_mensagens to authenticated;
+
+drop policy if exists atendimento_mensagens_delete on public.atendimento_mensagens;
+create policy atendimento_mensagens_delete
+  on public.atendimento_mensagens
+  for delete
+  using (autor_id = auth.uid());
+
+create or replace function public.atendimento_conversas_update_guard()
+returns trigger
+language plpgsql
+as $$
+begin
+  if current_setting('lopesul.atendimento_interno', true) = 'on' then
+    return new;
+  end if;
+
+  if public.is_master() then
+    return new;
+  end if;
+
+  if old.atendente_id = auth.uid() or public.pode_atender(old.setor) then
+    new.cliente_id := old.cliente_id;
+    new.setor := old.setor;
+    new.atendente_id := old.atendente_id;
+    new.status := old.status;
+    new.ultima_mensagem_at := old.ultima_mensagem_at;
+    new.preview := old.preview;
+    new.nao_lidas_cliente := old.nao_lidas_cliente;
+    new.created_at := old.created_at;
+    return new;
+  end if;
+
+  new.cliente_id := old.cliente_id;
+  new.setor := old.setor;
+  new.atendente_id := old.atendente_id;
+  new.status := old.status;
+  new.ultima_mensagem_at := old.ultima_mensagem_at;
+  new.preview := old.preview;
+  new.nao_lidas_master := old.nao_lidas_master;
+  new.created_at := old.created_at;
+  return new;
+end;
+$$;
+
+create or replace function public.atendimento_apos_apagar_mensagem()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  ultima record;
+begin
+  perform set_config('lopesul.atendimento_interno', 'on', true);
+
+  select corpo, tipo, created_at
+  into ultima
+  from public.atendimento_mensagens
+  where conversa_id = old.conversa_id
+  order by created_at desc
+  limit 1;
+
+  update public.atendimento_conversas
+  set
+    preview = case
+      when ultima.created_at is null then null
+      when nullif(trim(coalesce(ultima.corpo, '')), '') is not null then left(ultima.corpo, 140)
+      when ultima.tipo = 'imagem' then 'Imagem'
+      when ultima.tipo = 'audio' then 'Áudio'
+      when ultima.tipo = 'video' then 'Vídeo'
+      when ultima.tipo = 'documento' then 'Documento'
+      else null
+    end,
+    ultima_mensagem_at = ultima.created_at
+  where id = old.conversa_id;
+
+  return old;
+end;
+$$;
+
+drop trigger if exists atendimento_mensagens_after_del on public.atendimento_mensagens;
+create trigger atendimento_mensagens_after_del
+  after delete on public.atendimento_mensagens
+  for each row execute function public.atendimento_apos_apagar_mensagem();
+
+-- ========== 025_ocultar_mensagem_autor.sql ==========
+alter table public.atendimento_mensagens
+  add column if not exists oculta_pelo_autor boolean not null default false;
+
+grant update on public.atendimento_mensagens to authenticated;
+
+drop policy if exists atendimento_mensagens_update on public.atendimento_mensagens;
+create policy atendimento_mensagens_update
+  on public.atendimento_mensagens
+  for update
+  using (autor_id = auth.uid())
+  with check (autor_id = auth.uid());
+
+create or replace function public.atendimento_mensagens_update_guard()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.conversa_id := old.conversa_id;
+  new.autor_id := old.autor_id;
+  new.papel := old.papel;
+  new.corpo := old.corpo;
+  new.tipo := old.tipo;
+  new.arquivo_path := old.arquivo_path;
+  new.arquivo_nome := old.arquivo_nome;
+  new.arquivo_mime := old.arquivo_mime;
+  new.arquivo_tamanho := old.arquivo_tamanho;
+  new.created_at := old.created_at;
+  if old.oculta_pelo_autor then
+    new.oculta_pelo_autor := true;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists atendimento_mensagens_before_upd on public.atendimento_mensagens;
+create trigger atendimento_mensagens_before_upd
+  before update on public.atendimento_mensagens
+  for each row execute function public.atendimento_mensagens_update_guard();
+
+revoke delete on public.atendimento_mensagens from authenticated;
+drop policy if exists atendimento_mensagens_delete on public.atendimento_mensagens;
+
+-- ========== 026_listar_clientes.sql ==========
+drop policy if exists profiles_select_clientes on public.profiles;
+create policy profiles_select_clientes
+  on public.profiles
+  for select
+  to authenticated
+  using (
+    status = 'approved'
+    and tipo_conta = 'cliente'
+    and (public.is_master() or public.is_equipe())
+  );
+
+drop policy if exists atendimento_conversas_insert on public.atendimento_conversas;
+create policy atendimento_conversas_insert
+  on public.atendimento_conversas
+  for insert
+  with check (
+    atendente_id is not null
+    and atendente_id <> cliente_id
+    and public.eh_interno(atendente_id)
+    and (
+      auth.uid() = cliente_id
+      or (
+        auth.uid() = atendente_id
+        and public.eh_interno(auth.uid())
+        and not public.eh_interno(cliente_id)
+      )
+    )
+  );
+
+notify pgrst, 'reload schema';
 

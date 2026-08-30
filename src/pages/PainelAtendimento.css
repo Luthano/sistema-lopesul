@@ -1,30 +1,20 @@
+.painel-admin-shell:has(.atend-page) {
+  align-items: stretch;
+}
+
 @media (min-width: 861px) {
-  .page-shell:has(.atend-page) {
-    padding-top: 20px;
-    padding-bottom: 20px;
-  }
-
-  .painel-page:has(.atend-page) {
-    height: calc(100dvh - 112px);
-    min-height: 0;
-  }
-
-  .painel-admin-shell:has(.atend-page) {
-    height: 100%;
-    align-items: stretch;
-  }
-
   .painel-admin-shell:has(.atend-page) .painel-sidebar,
-  .painel-admin-shell:has(.atend-page) .painel-main {
-    height: 100%;
-    min-height: 0;
-    align-self: stretch;
+  .painel-main:has(.atend-page) {
+    height: 720px;
+    min-height: 720px;
+    max-height: 720px;
   }
 }
 
 .painel-main:has(.atend-page) {
   display: flex;
   flex-direction: column;
+  overflow: auto;
 }
 
 .painel-content:has(.atend-page) {
@@ -32,8 +22,8 @@
   flex-direction: column;
   flex: 1;
   min-height: 0;
-  overflow: hidden;
-  padding-bottom: 16px;
+  overflow: auto;
+  padding-bottom: 20px;
 }
 
 .painel-content:has(.atend-page) .atend-page {
@@ -137,6 +127,7 @@
   height: 100%;
   border-radius: 18px;
   overflow: hidden;
+  overflow-y: auto;
   background: #fff;
   box-shadow: var(--shadow);
 }
@@ -208,8 +199,8 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  overflow: auto;
-  flex: 1;
+  overflow: visible;
+  flex: 0 0 auto;
 }
 
 .atend-fila-lista li {
@@ -382,6 +373,7 @@
 .atend-chat-body {
   flex: 1;
   min-height: 0;
+  overflow-x: hidden;
   overflow-y: auto;
   padding: 16px 14px;
   border-radius: 18px;
@@ -421,9 +413,33 @@
   word-break: break-word;
 }
 
+.atend-msg-meta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.atend-msg-apagar {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #b91c1c;
+  cursor: pointer;
+  opacity: 0.72;
+}
+
+.atend-msg-apagar:hover {
+  color: #991b1b;
+  opacity: 1;
+}
+
 .atend-msgs li time {
   display: block;
-  margin-top: 4px;
+  margin-top: 0;
   font-size: 0.68rem;
   text-align: right;
   opacity: 0.65;
@@ -712,10 +728,16 @@
   }
 
   .atend-fila {
-    max-height: 220px;
+    max-height: 280px;
+    overflow-y: auto;
   }
 
   .atend-chat {
-    min-height: 360px;
+    min-height: 0;
+  }
+
+  .atend-chat-body {
+    max-height: 420px;
+    overflow-y: auto;
   }
 }

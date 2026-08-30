@@ -11,8 +11,15 @@ export const SETORES_ATENDIMENTO = [
   { id: 'suporte', label: 'Suporte' },
 ]
 
+export const FILTRO_CLIENTES = { id: 'cliente', label: 'Cliente' }
+
 export function labelSetor(setor) {
+  if (setor === FILTRO_CLIENTES.id) return FILTRO_CLIENTES.label
   return SETORES_ATENDIMENTO.find((item) => item.id === setor)?.label || 'Atendimento'
+}
+
+export function ehFiltroClientes(setor) {
+  return setor === FILTRO_CLIENTES.id
 }
 
 export function previewMensagem(texto) {
@@ -32,6 +39,18 @@ const CONVERSA_FILA =
 export function nomeAtendente(perfil) {
   const pessoa = Array.isArray(perfil) ? perfil[0] : perfil
   return pessoa?.nome_completo || pessoa?.email || 'Atendente'
+}
+
+export async function listarClientes(excluirId) {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, nome_completo, email, tipo_conta, role')
+    .eq('status', 'approved')
+    .eq('tipo_conta', 'cliente')
+    .order('nome_completo', { ascending: true, nullsFirst: false })
+
+  if (error) throw error
+  return (data || []).filter((item) => item.id !== excluirId && !isPerfilInterno(item))
 }
 
 export async function listarAtendentes(setor, excluirId) {
@@ -118,9 +137,14 @@ export function conversaComPessoa(conversas, userId, pessoaId, setor) {
 }
 
 const MENSAGEM_CAMPOS =
-  'id, conversa_id, autor_id, papel, corpo, tipo, arquivo_path, arquivo_nome, arquivo_mime, arquivo_tamanho, created_at'
+  'id, conversa_id, autor_id, papel, corpo, tipo, arquivo_path, arquivo_nome, arquivo_mime, arquivo_tamanho, oculta_pelo_autor, created_at'
 
-export async function listarMensagens(conversaId) {
+export function mensagemVisivelPara(item, userId) {
+  if (!item) return false
+  return !(item.oculta_pelo_autor && item.autor_id === userId)
+}
+
+export async function listarMensagens(conversaId, userId) {
   const { data, error } = await supabase
     .from('atendimento_mensagens')
     .select(MENSAGEM_CAMPOS)
@@ -128,7 +152,7 @@ export async function listarMensagens(conversaId) {
     .order('created_at', { ascending: true })
 
   if (error) throw error
-  return data || []
+  return (data || []).filter((item) => mensagemVisivelPara(item, userId))
 }
 
 export async function enviarMensagem({ conversaId, autorId, papel, corpo, anexo }) {
@@ -156,6 +180,22 @@ export async function enviarMensagem({ conversaId, autorId, papel, corpo, anexo 
   return data
 }
 
+export async function excluirMensagem(mensagem, userId) {
+  if (!mensagem?.id || !userId) throw new Error('Mensagem inválida.')
+  if (mensagem.autor_id && mensagem.autor_id !== userId) {
+    throw new Error('Você só pode apagar as suas mensagens.')
+  }
+  const { data, error } = await supabase
+    .from('atendimento_mensagens')
+    .update({ oculta_pelo_autor: true })
+    .eq('id', mensagem.id)
+    .eq('autor_id', userId)
+    .select('id')
+    .maybeSingle()
+  if (error) throw error
+  if (!data) throw new Error('Você só pode apagar as suas mensagens.')
+}
+
 export async function excluirConversa(conversaId) {
   if (!conversaId) throw new Error('Conversa inválida.')
   await apagarArquivosConversa(conversaId)
@@ -173,15 +213,17 @@ export async function marcarLida(conversaId, isMaster) {
   if (error) throw error
 }
 
-export async function contarNaoLidas(userId, isMaster) {
-  let query = supabase.from('atendimento_conversas').select('nao_lidas_cliente, nao_lidas_master')
-  if (!isMaster) query = query.eq('cliente_id', userId)
+export async function contarNaoLidas(userId, isAtendente) {
+  let query = supabase
+    .from('atendimento_conversas')
+    .select('cliente_id, nao_lidas_cliente, nao_lidas_master')
+  if (!isAtendente) query = query.eq('cliente_id', userId)
   const { data, error } = await query
   if (error) throw error
-  return (data || []).reduce(
-    (total, row) => total + (Number(isMaster ? row.nao_lidas_master : row.nao_lidas_cliente) || 0),
-    0,
-  )
+  return (data || []).reduce((total, row) => {
+    const campo = row.cliente_id === userId ? row.nao_lidas_cliente : row.nao_lidas_master
+    return total + (Number(campo) || 0)
+  }, 0)
 }
 
 export function useAtendimentoNaoLidas(userId, isMaster) {
@@ -218,9 +260,23 @@ export function useAtendimentoNaoLidas(userId, isMaster) {
           refresh()
         },
       )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'atendimento_mensagens',
+        },
+        (payload) => {
+          if (payload.new?.autor_id && payload.new.autor_id !== userId) refresh()
+        },
+      )
       .subscribe()
 
+    const timer = window.setInterval(refresh, 8000)
+
     return () => {
+      window.clearInterval(timer)
       supabase.removeChannel(channel)
     }
   }, [userId, isMaster, refresh])

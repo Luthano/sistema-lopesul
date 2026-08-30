@@ -22,7 +22,15 @@ export function isPerfilInterno(perfil) {
   return Boolean(pessoa && (pessoa.role === 'master' || isEquipeTipo(pessoa.tipo_conta)))
 }
 
+export function setorDaConta(perfil) {
+  const tipo = Array.isArray(perfil) ? perfil[0]?.tipo_conta : perfil?.tipo_conta
+  if (tipo === 'financeiro' || tipo === 'comercial' || tipo === 'agencias') return tipo
+  if (tipo === 'atendimento') return 'administrativo'
+  return 'suporte'
+}
+
 export function tiposContaDoSetor(setor) {
+  if (setor === 'cliente') return []
   if (setor === 'suporte') return ['suporte']
   if (setor === 'administrativo') return ['atendimento']
   if (setor === 'financeiro' || setor === 'comercial' || setor === 'agencias') {

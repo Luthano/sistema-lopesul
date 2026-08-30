@@ -5,20 +5,25 @@ import {
   conversaComPessoa,
   enviarMensagem,
   excluirConversa,
+  excluirMensagem,
   formatarHoraMensagem,
   garantirConversaCliente,
+  ehFiltroClientes,
+  FILTRO_CLIENTES,
   labelSetor,
   listarAtendentes,
+  listarClientes,
   listarConversasCliente,
   listarConversasMaster,
   outroDaConversa,
   listarMensagens,
   marcarLida,
+  mensagemVisivelPara,
   nomeAtendente,
   SETORES_ATENDIMENTO,
 } from '../lib/atendimento'
 import { enviarArquivoConversa } from '../lib/atendimentoAnexos'
-import { isPerfilInterno, setoresDaConta } from '../lib/tiposConta'
+import { isPerfilInterno, setorDaConta, setoresDaConta } from '../lib/tiposConta'
 import { supabase } from '../lib/supabase'
 import { Trash2 } from 'lucide-react'
 import AtendimentoComposer from './AtendimentoComposer'
@@ -42,7 +47,15 @@ function Avatar({ nome }) {
   )
 }
 
-function ConfirmApagar({ nome, busy, onConfirm, onCancel }) {
+function ConfirmApagar({
+  nome,
+  titulo = 'Apagar conversa',
+  texto,
+  confirmLabel = 'Apagar conversa',
+  busy,
+  onConfirm,
+  onCancel,
+}) {
   return (
     <div className="atend-confirm-backdrop" role="presentation" onClick={busy ? undefined : onCancel}>
       <div
@@ -52,14 +65,14 @@ function ConfirmApagar({ nome, busy, onConfirm, onCancel }) {
         aria-labelledby="atend-apagar-titulo"
         onClick={(event) => event.stopPropagation()}
       >
-        <h3 id="atend-apagar-titulo">Apagar conversa</h3>
-        <p>Excluir toda a conversa com {nome}? Mensagens e arquivos não voltam.</p>
+        <h3 id="atend-apagar-titulo">{titulo}</h3>
+        <p>{texto || `Excluir toda a conversa com ${nome}? Mensagens e arquivos não voltam.`}</p>
         <div className="atend-confirm-actions">
           <button type="button" disabled={busy} onClick={onCancel}>
             Cancelar
           </button>
           <button type="button" className="is-danger" disabled={busy} onClick={onConfirm}>
-            {busy ? 'Apagando…' : 'Apagar conversa'}
+            {busy ? 'Apagando…' : confirmLabel}
           </button>
         </div>
       </div>
@@ -87,36 +100,82 @@ function BotoesSetor({ ativo, onEscolher, naoLidas = {}, setores = SETORES_ATEND
   )
 }
 
-function ChatThread({ mensagens, userId, vazio }) {
+function ChatThread({ mensagens, setMensagens, userId, vazio }) {
   const fimRef = useRef(null)
+  const [apagarItem, setApagarItem] = useState(null)
+  const [apagando, setApagando] = useState(false)
+  const [erroApagar, setErroApagar] = useState('')
 
   useEffect(() => {
     fimRef.current?.scrollIntoView({ block: 'end' })
   }, [mensagens.length])
+
+  async function handleApagarMensagem() {
+    if (!apagarItem) return
+    setErroApagar('')
+    setApagando(true)
+    try {
+      await excluirMensagem(apagarItem, userId)
+      setMensagens((prev) => prev.filter((item) => item.id !== apagarItem.id))
+      setApagarItem(null)
+    } catch (error) {
+      setErroApagar(error.message || 'Não foi possível apagar a mensagem.')
+    } finally {
+      setApagando(false)
+    }
+  }
 
   if (!mensagens.length) {
     return <p className="atend-vazio">{vazio}</p>
   }
 
   return (
-    <ul className="atend-msgs">
-      {mensagens.map((item) => {
-        const propria = item.autor_id === userId
-        return (
-          <li key={item.id} className={propria ? 'is-own' : 'is-other'}>
-            <AtendimentoMidia item={item} />
-            {item.corpo ? <p>{item.corpo}</p> : null}
-            <time dateTime={item.created_at}>{formatarHoraMensagem(item.created_at)}</time>
-          </li>
-        )
-      })}
-      <li ref={fimRef} className="atend-msgs-end" aria-hidden="true" />
-    </ul>
+    <>
+      {erroApagar ? <p className="atend-vazio">{erroApagar}</p> : null}
+      <ul className="atend-msgs">
+        {mensagens.map((item) => {
+          const propria = item.autor_id === userId
+          return (
+            <li key={item.id} className={propria ? 'is-own' : 'is-other'}>
+              <AtendimentoMidia item={item} />
+              {item.corpo ? <p>{item.corpo}</p> : null}
+              <div className="atend-msg-meta">
+                {propria ? (
+                  <button
+                    type="button"
+                    className="atend-msg-apagar"
+                    aria-label="Apagar mensagem"
+                    onClick={() => {
+                      setErroApagar('')
+                      setApagarItem(item)
+                    }}
+                  >
+                    <Trash2 size={12} />
+                  </button>
+                ) : null}
+                <time dateTime={item.created_at}>{formatarHoraMensagem(item.created_at)}</time>
+              </div>
+            </li>
+          )
+        })}
+        <li ref={fimRef} className="atend-msgs-end" aria-hidden="true" />
+      </ul>
+      {apagarItem ? (
+        <ConfirmApagar
+          titulo="Apagar mensagem"
+          texto="Apagar só esta mensagem, e só na sua tela. Quem recebeu continua vendo. As mensagens da outra pessoa não são apagadas."
+          confirmLabel="Apagar mensagem"
+          busy={apagando}
+          onCancel={() => (apagando ? null : setApagarItem(null))}
+          onConfirm={handleApagarMensagem}
+        />
+      ) : null}
+    </>
   )
 }
 
 
-function useMensagens(conversaId) {
+function useMensagens(conversaId, userId) {
   const [mensagens, setMensagens] = useState([])
   const [erro, setErro] = useState('')
 
@@ -125,9 +184,9 @@ function useMensagens(conversaId) {
       setMensagens([])
       return
     }
-    const lista = await listarMensagens(conversaId)
+    const lista = await listarMensagens(conversaId, userId)
     setMensagens(lista)
-  }, [conversaId])
+  }, [conversaId, userId])
 
   useEffect(() => {
     let active = true
@@ -153,8 +212,26 @@ function useMensagens(conversaId) {
         },
         (payload) => {
           const nova = payload.new
-          if (!nova?.id) return
+          if (!nova?.id || !mensagemVisivelPara(nova, userId)) return
           setMensagens((prev) => (prev.some((item) => item.id === nova.id) ? prev : [...prev, nova]))
+        },
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'atendimento_mensagens',
+          filter: `conversa_id=eq.${conversaId}`,
+        },
+        (payload) => {
+          const atualizada = payload.new
+          if (!atualizada?.id) return
+          if (!mensagemVisivelPara(atualizada, userId)) {
+            setMensagens((prev) => prev.filter((item) => item.id !== atualizada.id))
+            return
+          }
+          setMensagens((prev) => prev.map((item) => (item.id === atualizada.id ? atualizada : item)))
         },
       )
       .subscribe()
@@ -163,7 +240,7 @@ function useMensagens(conversaId) {
       active = false
       supabase.removeChannel(channel)
     }
-  }, [conversaId, carregar])
+  }, [conversaId, userId, carregar])
 
   return { mensagens, setMensagens, erro, setErro, carregar }
 }
@@ -176,7 +253,7 @@ function ChatCliente({ user, setor, atendenteId, onSetor, onAtendente }) {
   const [carregando, setCarregando] = useState(false)
   const [apagando, setApagando] = useState(false)
   const [confirmarId, setConfirmarId] = useState('')
-  const { mensagens, setMensagens, erro: erroMsgs } = useMensagens(conversa?.id)
+  const { mensagens, setMensagens, erro: erroMsgs } = useMensagens(conversa?.id, user.id)
 
   const carregarConversas = useCallback(async () => {
     setConversas(await listarConversasCliente(user.id))
@@ -386,6 +463,7 @@ function ChatCliente({ user, setor, atendenteId, onSetor, onAtendente }) {
               ) : (
                 <ChatThread
                   mensagens={mensagens}
+                  setMensagens={setMensagens}
                   userId={user.id}
                   vazio={`Envie uma mensagem para ${nomePessoa}.`}
                 />
@@ -439,20 +517,34 @@ function nomeOutro(item, userId) {
 }
 
 function ChatMaster({ user, setor, onSetor }) {
+  const { profile } = useAuth()
   const [conversas, setConversas] = useState([])
   const [colegas, setColegas] = useState([])
+  const [clientes, setClientes] = useState([])
   const [selecionadaId, setSelecionadaId] = useState('')
   const [erro, setErro] = useState('')
   const [carregando, setCarregando] = useState(true)
   const [apagando, setApagando] = useState(false)
   const [confirmarId, setConfirmarId] = useState('')
-  const { mensagens, setMensagens, erro: erroMsgs } = useMensagens(selecionadaId)
+  const { mensagens, setMensagens, erro: erroMsgs } = useMensagens(selecionadaId, user.id)
   const selecionada = conversas.find((item) => item.id === selecionadaId) || null
-  const filaClientes = conversas.filter((item) => {
-    if (setor && item.setor !== setor) return false
-    return !isPerfilInterno(item.profiles)
-  })
-  const filaColegas = setor
+  const filaClientes = ehFiltroClientes(setor)
+    ? clientes.map((pessoa) => ({
+        pessoa,
+        conversa:
+          conversas.find((item) => item.cliente_id === pessoa.id && item.atendente_id === user.id) ||
+          conversas.find((item) => item.cliente_id === pessoa.id) ||
+          null,
+      }))
+    : conversas
+        .filter((item) => {
+          if (setor && item.setor !== setor) return false
+          return !isPerfilInterno(item.profiles)
+        })
+        .map((item) => ({ pessoa: item.profiles, conversa: item }))
+  const filaColegas = ehFiltroClientes(setor)
+    ? []
+    : setor
     ? colegas.map((pessoa) => ({
         pessoa,
         conversa: conversaComPessoa(conversas, user.id, pessoa.id, setor),
@@ -498,7 +590,7 @@ function ChatMaster({ user, setor, onSetor }) {
   }, [carregarFila])
 
   useEffect(() => {
-    if (!setor) {
+    if (!setor || ehFiltroClientes(setor)) {
       setColegas([])
       return undefined
     }
@@ -516,6 +608,24 @@ function ChatMaster({ user, setor, onSetor }) {
   }, [setor, user.id])
 
   useEffect(() => {
+    if (!ehFiltroClientes(setor)) {
+      setClientes([])
+      return undefined
+    }
+    let active = true
+    listarClientes(user.id)
+      .then((lista) => {
+        if (active) setClientes(lista)
+      })
+      .catch((error) => {
+        if (active) setErro(error.message || 'Não foi possível listar os clientes.')
+      })
+    return () => {
+      active = false
+    }
+  }, [setor, user.id])
+
+  useEffect(() => {
     if (!selecionadaId) return undefined
     const souCliente = selecionada?.cliente_id === user.id
     marcarLida(selecionadaId, !souCliente).catch(() => {})
@@ -523,10 +633,22 @@ function ChatMaster({ user, setor, onSetor }) {
   }, [selecionadaId, selecionada?.cliente_id, user.id, mensagens.length])
 
   async function abrirColega(pessoa) {
-    if (!setor || !pessoa?.id) return
+    if (!setor || ehFiltroClientes(setor) || !pessoa?.id) return
     setErro('')
     try {
       const atual = await garantirConversaCliente(user.id, setor, pessoa.id)
+      setConversas((prev) => (prev.some((item) => item.id === atual.id) ? prev : [atual, ...prev]))
+      setSelecionadaId(atual.id)
+    } catch (error) {
+      setErro(error.message || 'Não foi possível abrir a conversa.')
+    }
+  }
+
+  async function abrirCliente(pessoa) {
+    if (!pessoa?.id) return
+    setErro('')
+    try {
+      const atual = await garantirConversaCliente(pessoa.id, setorDaConta(profile), user.id)
       setConversas((prev) => (prev.some((item) => item.id === atual.id) ? prev : [atual, ...prev]))
       setSelecionadaId(atual.id)
     } catch (error) {
@@ -580,14 +702,8 @@ function ChatMaster({ user, setor, onSetor }) {
           <p className="atend-vazio">Buscando fila…</p>
         ) : (
           <>
-            <p className="atend-fila-grupo">Equipe</p>
-            {filaColegas.length === 0 ? (
-              <p className="atend-vazio">
-                {setor
-                  ? `Nenhum colega em ${labelSetor(setor)}.`
-                  : 'Escolha um departamento para ver a equipe.'}
-              </p>
-            ) : (
+            {ehFiltroClientes(setor) ? null : <p className="atend-fila-grupo">Equipe</p>}
+            {!ehFiltroClientes(setor) && filaColegas.length > 0 ? (
               <ul className="atend-fila-lista">
                 {filaColegas.map(({ pessoa, conversa: itemConversa }) => {
                   const nome = nomeAtendente(pessoa)
@@ -627,54 +743,58 @@ function ChatMaster({ user, setor, onSetor }) {
                   )
                 })}
               </ul>
-            )}
+            ) : null}
             <p className="atend-fila-grupo">Clientes</p>
-            {filaClientes.length === 0 ? (
-              <p className="atend-vazio">
-                {setor ? `Nenhuma conversa de cliente em ${labelSetor(setor)}.` : 'Nenhuma conversa de cliente.'}
-              </p>
-            ) : (
+            {filaClientes.length > 0 ? (
               <ul className="atend-fila-lista">
-                {filaClientes.map((item) => {
-                  const nome = nomeCliente(item)
+                {filaClientes.map(({ pessoa, conversa: itemConversa }) => {
+                  const nome = nomeCliente({ profiles: pessoa })
                   return (
-                    <li key={item.id}>
+                    <li key={pessoa?.id || itemConversa?.id}>
                       <button
                         type="button"
-                        className={`atend-fila-abrir${item.id === selecionadaId ? ' is-active' : ''}`}
+                        className={`atend-fila-abrir${itemConversa?.id === selecionadaId ? ' is-active' : ''}`}
                         onClick={() => {
-                          setSelecionadaId(item.id)
-                          onSetor?.(item.setor)
+                          if (itemConversa) {
+                            setSelecionadaId(itemConversa.id)
+                            if (!ehFiltroClientes(setor)) onSetor?.(itemConversa.setor)
+                            return
+                          }
+                          abrirCliente(pessoa)
                         }}
                       >
                         <Avatar nome={nome} />
                         <span className="atend-fila-copy">
                           <strong>
                             {nome}
-                            <time>{formatarHoraMensagem(item.ultima_mensagem_at)}</time>
+                            {itemConversa?.ultima_mensagem_at ? (
+                              <time>{formatarHoraMensagem(itemConversa.ultima_mensagem_at)}</time>
+                            ) : null}
                           </strong>
                           <small>
-                            {labelSetor(item.setor)}
-                            {item.preview ? ` · ${item.preview}` : ''}
+                            {labelSetor(itemConversa?.setor || (ehFiltroClientes(setor) ? 'cliente' : setor))}
+                            {itemConversa?.preview ? ` · ${itemConversa.preview}` : ' · Iniciar conversa'}
                           </small>
                         </span>
-                        {item.nao_lidas_master > 0 ? (
-                          <span className="atend-unread">{item.nao_lidas_master}</span>
+                        {itemConversa?.nao_lidas_master > 0 ? (
+                          <span className="atend-unread">{itemConversa.nao_lidas_master}</span>
                         ) : null}
                       </button>
-                      <button
-                        type="button"
-                        className="atend-fila-apagar"
-                        aria-label={`Apagar conversa com ${nome}`}
-                        onClick={() => setConfirmarId(item.id)}
-                      >
-                        <Trash2 size={14} />
-                      </button>
+                      {itemConversa?.id ? (
+                        <button
+                          type="button"
+                          className="atend-fila-apagar"
+                          aria-label={`Apagar conversa com ${nome}`}
+                          onClick={() => setConfirmarId(itemConversa.id)}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      ) : null}
                     </li>
                   )
                 })}
               </ul>
-            )}
+            ) : null}
           </>
         )}
       </aside>
@@ -707,6 +827,7 @@ function ChatMaster({ user, setor, onSetor }) {
             <div className="atend-chat-body">
               <ChatThread
                 mensagens={mensagens}
+                setMensagens={setMensagens}
                 userId={user.id}
                 vazio={`Envie uma mensagem para ${nomeOutro(selecionada, user.id)}.`}
               />
@@ -745,13 +866,13 @@ function PainelAtendimento({ isMaster, user }) {
     () => setoresDaConta(),
     [],
   )
-  const setoresBotoes = useMemo(
-    () =>
+  const setoresBotoes = useMemo(() => {
+    const base =
       setoresFiltro == null
         ? SETORES_ATENDIMENTO
-        : SETORES_ATENDIMENTO.filter((item) => setoresFiltro.includes(item.id)),
-    [setoresFiltro],
-  )
+        : SETORES_ATENDIMENTO.filter((item) => setoresFiltro.includes(item.id))
+    return isAtendente ? [...base, FILTRO_CLIENTES] : base
+  }, [setoresFiltro, isAtendente])
 
   useEffect(() => {
     if (setoresFiltro?.length === 1) setSetor(setoresFiltro[0])
@@ -763,6 +884,9 @@ function PainelAtendimento({ isMaster, user }) {
       const mapa = {}
       for (const item of lista) {
         mapa[item.setor] = (mapa[item.setor] || 0) + (item.nao_lidas_master || 0)
+        if (!isPerfilInterno(item.profiles) && item.nao_lidas_master) {
+          mapa.cliente = (mapa.cliente || 0) + item.nao_lidas_master
+        }
       }
       setNaoLidas(mapa)
       return
