@@ -135,11 +135,33 @@ function useMensagens(conversaId) {
   return { mensagens, setMensagens, erro, setErro, carregar }
 }
 
-function ChatCliente({ user, setor }) {
+function ChatCliente({ user, setor, onSetor }) {
   const [conversa, setConversa] = useState(null)
+  const [conversas, setConversas] = useState([])
   const [erro, setErro] = useState('')
   const [carregando, setCarregando] = useState(false)
   const { mensagens, setMensagens, erro: erroMsgs } = useMensagens(conversa?.id)
+
+  const carregarConversas = useCallback(async () => {
+    setConversas(await listarConversasCliente(user.id))
+  }, [user.id])
+
+  useEffect(() => {
+    carregarConversas().catch(() => {})
+    const channel = supabase
+      .channel(`atend-fila-cliente-${user.id}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'atendimento_conversas' },
+        () => {
+          carregarConversas().catch(() => {})
+        },
+      )
+      .subscribe()
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [carregarConversas, user.id])
 
   useEffect(() => {
     if (!setor) {
@@ -188,40 +210,81 @@ function ChatCliente({ user, setor }) {
       anexo,
     })
     setMensagens((prev) => (prev.some((item) => item.id === salva.id) ? prev : [...prev, salva]))
+    carregarConversas().catch(() => {})
   }
 
   return (
-    <section className="atend-chat">
-      <header className="atend-chat-head">
-        <Avatar nome={setor ? labelSetor(setor) : 'Lopesul'} />
-        <div>
-          <h2>{setor ? labelSetor(setor) : 'Lopesul'}</h2>
-          <p>{setor ? 'Online · responda quando quiser' : 'Escolha um setor para começar'}</p>
-        </div>
-      </header>
-      {(erro || erroMsgs) && (
-        <p className="auth-alert" role="alert">
-          {erro || erroMsgs}
-        </p>
-      )}
-      <div className="atend-chat-body">
-        {!setor ? (
-          <p className="atend-vazio">Selecione Financeiro, Agências ou Administrativo.</p>
-        ) : carregando ? (
-          <p className="atend-vazio">Carregando conversa…</p>
+    <section className="atend-master">
+      <aside className="atend-fila">
+        <ul className="atend-fila-lista">
+          {SETORES_ATENDIMENTO.map((item) => {
+            const itemConversa = conversas.find((atual) => atual.setor === item.id)
+            return (
+              <li key={item.id}>
+                <button
+                  type="button"
+                  className={setor === item.id ? 'is-active' : ''}
+                  onClick={() => onSetor(item.id)}
+                >
+                  <Avatar nome={item.label} />
+                  <span className="atend-fila-copy">
+                    <strong>
+                      {item.label}
+                      {itemConversa?.ultima_mensagem_at ? (
+                        <time>{formatarHoraMensagem(itemConversa.ultima_mensagem_at)}</time>
+                      ) : null}
+                    </strong>
+                    <small>{itemConversa?.preview || 'Iniciar conversa'}</small>
+                  </span>
+                  {itemConversa?.nao_lidas_cliente > 0 ? (
+                    <span className="atend-unread">{itemConversa.nao_lidas_cliente}</span>
+                  ) : null}
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+      </aside>
+
+      <div className="atend-chat">
+        {setor ? (
+          <>
+            <header className="atend-chat-head">
+              <Avatar nome={labelSetor(setor)} />
+              <div>
+                <h2>{labelSetor(setor)}</h2>
+                <p>Online · responda quando quiser</p>
+              </div>
+            </header>
+            {(erro || erroMsgs) && (
+              <p className="auth-alert" role="alert">
+                {erro || erroMsgs}
+              </p>
+            )}
+            <div className="atend-chat-body">
+              {carregando ? (
+                <p className="atend-vazio">Carregando conversa…</p>
+              ) : (
+                <ChatThread
+                  mensagens={mensagens}
+                  userId={user.id}
+                  vazio={`Envie uma mensagem para o setor ${labelSetor(setor)}.`}
+                />
+              )}
+            </div>
+            <AtendimentoComposer
+              onSend={handleSend}
+              disabled={carregando}
+              placeholder={`Escreva para ${labelSetor(setor)}`}
+            />
+          </>
         ) : (
-          <ChatThread
-            mensagens={mensagens}
-            userId={user.id}
-            vazio={`Envie uma mensagem para o setor ${labelSetor(setor)}.`}
-          />
+          <div className="atend-vazio-painel">
+            <Avatar nome="Lopesul" />
+            <p>Selecione um setor à esquerda para começar.</p>
+          </div>
         )}
       </div>
-      <AtendimentoComposer
-        onSend={handleSend}
-        disabled={!setor || carregando}
-        placeholder={setor ? `Escreva para ${labelSetor(setor)}` : 'Escolha um setor para escrever'}
-      />
     </section>
   )
 }
@@ -430,7 +493,7 @@ function PainelAtendimento({ isMaster, user }) {
         {isMaster ? (
           <ChatMaster user={user} setor={setor} onSetor={setSetor} />
         ) : (
-          <ChatCliente user={user} setor={setor} />
+          <ChatCliente user={user} setor={setor} onSetor={setSetor} />
         )}
       </div>
     </div>
