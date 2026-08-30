@@ -141,6 +141,7 @@ function ChatCliente({ user, setor, onSetor }) {
   const [erro, setErro] = useState('')
   const [carregando, setCarregando] = useState(false)
   const { mensagens, setMensagens, erro: erroMsgs } = useMensagens(conversa?.id)
+  const fila = conversas.filter((item) => item.ultima_mensagem_at || item.preview)
 
   const carregarConversas = useCallback(async () => {
     setConversas(await listarConversasCliente(user.id))
@@ -216,34 +217,33 @@ function ChatCliente({ user, setor, onSetor }) {
   return (
     <section className="atend-master">
       <aside className="atend-fila">
-        <ul className="atend-fila-lista">
-          {SETORES_ATENDIMENTO.map((item) => {
-            const itemConversa = conversas.find((atual) => atual.setor === item.id)
-            return (
+        {fila.length === 0 ? (
+          <p className="atend-vazio">Nenhuma conversa ainda. Escolha um setor acima para começar.</p>
+        ) : (
+          <ul className="atend-fila-lista">
+            {fila.map((item) => (
               <li key={item.id}>
                 <button
                   type="button"
-                  className={setor === item.id ? 'is-active' : ''}
-                  onClick={() => onSetor(item.id)}
+                  className={setor === item.setor ? 'is-active' : ''}
+                  onClick={() => onSetor(item.setor)}
                 >
-                  <Avatar nome={item.label} />
+                  <Avatar nome={labelSetor(item.setor)} />
                   <span className="atend-fila-copy">
                     <strong>
-                      {item.label}
-                      {itemConversa?.ultima_mensagem_at ? (
-                        <time>{formatarHoraMensagem(itemConversa.ultima_mensagem_at)}</time>
-                      ) : null}
+                      {labelSetor(item.setor)}
+                      <time>{formatarHoraMensagem(item.ultima_mensagem_at)}</time>
                     </strong>
-                    <small>{itemConversa?.preview || 'Iniciar conversa'}</small>
+                    <small>{item.preview || 'Conversa iniciada'}</small>
                   </span>
-                  {itemConversa?.nao_lidas_cliente > 0 ? (
-                    <span className="atend-unread">{itemConversa.nao_lidas_cliente}</span>
+                  {item.nao_lidas_cliente > 0 ? (
+                    <span className="atend-unread">{item.nao_lidas_cliente}</span>
                   ) : null}
                 </button>
               </li>
-            )
-          })}
-        </ul>
+            ))}
+          </ul>
+        )}
       </aside>
 
       <div className="atend-chat">
