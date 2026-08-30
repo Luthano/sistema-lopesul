@@ -9,7 +9,9 @@ import PainelCadastro from './PainelCadastro'
 import PainelCidadesAdmin from './PainelCidadesAdmin'
 import PainelVeiculos from './PainelVeiculos'
 import PainelCotacoes from './PainelCotacoes'
-import { BRAND, mailtoComercial, mailtoOperacional } from '../lib/brand'
+import PainelAtendimento from './PainelAtendimento'
+import { useAtendimentoNaoLidas } from '../lib/atendimento'
+import { BRAND } from '../lib/brand'
 import './AuthPages.css'
 import './Painel.css'
 
@@ -141,35 +143,6 @@ function PainelInicio({
   )
 }
 
-function PainelAtendimento() {
-  return (
-    <div className="painel-section">
-      <header className="painel-section-head">
-        <div>
-          <h2>Fale com a Lopesul</h2>
-        </div>
-      </header>
-
-      <div className="painel-support-grid">
-        <article className="painel-support-card">
-          <strong>Comercial</strong>
-          <a href={mailtoComercial()}>{BRAND.emailComercial}</a>
-        </article>
-        <article className="painel-support-card">
-          <strong>Operacional</strong>
-          <a href={mailtoOperacional()}>{BRAND.emailOperacional}</a>
-        </article>
-        <article className="painel-support-card">
-          <strong>Site</strong>
-          <a href={BRAND.siteUrl} target="_blank" rel="noreferrer">
-            {BRAND.siteLabel}
-          </a>
-        </article>
-      </div>
-    </div>
-  )
-}
-
 function Painel() {
   const {
     user,
@@ -194,6 +167,7 @@ function Painel() {
   const [avisoCadastroAberto, setAvisoCadastroAberto] = useState(false)
   const avisoLoginRef = useRef('')
   const [aguardandoAprovacao, setAguardandoAprovacao] = useState(0)
+  const atendimentoNaoLidas = useAtendimentoNaoLidas(user?.id, isMaster)
 
   const section = resolveSection(location.pathname)
 
@@ -269,10 +243,15 @@ function Painel() {
 
     items.push(
       { id: 'cadastro', label: 'Cadastro', icon: ICONS.profile },
-      { id: 'atendimento', label: 'Atendimento', icon: ICONS.support },
+      {
+        id: 'atendimento',
+        label: 'Atendimento',
+        icon: ICONS.support,
+        alertaAtendimento: atendimentoNaoLidas > 0,
+      },
     )
     return items
-  }, [isMaster, aguardandoAprovacao])
+  }, [isMaster, aguardandoAprovacao, atendimentoNaoLidas])
 
   useEffect(() => {
     setMenuOpen(false)
@@ -408,16 +387,27 @@ function Painel() {
               to={item.id === 'inicio' ? '/painel' : `/painel/${item.id}`}
               end={item.id === 'inicio'}
               className={({ isActive }) =>
-                `painel-nav-link ${isActive ? 'is-active' : ''}${item.alertaAprovacao ? ' has-alerta' : ''}`
+                `painel-nav-link ${isActive ? 'is-active' : ''}${
+                  item.alertaAprovacao || item.alertaAtendimento ? ' has-alerta' : ''
+                }`
               }
               title={
                 item.alertaAprovacao
                   ? `${aguardandoAprovacao} cadastro(s) completo(s) aguardando aprovação`
-                  : undefined
+                  : item.alertaAtendimento
+                    ? `${atendimentoNaoLidas} mensagem(ns) não lida(s)`
+                    : undefined
               }
             >
-              <span className={`painel-nav-icon${item.alertaAprovacao ? ' is-alerta' : ''}`}>{item.icon}</span>
+              <span
+                className={`painel-nav-icon${item.alertaAprovacao || item.alertaAtendimento ? ' is-alerta' : ''}`}
+              >
+                {item.icon}
+              </span>
               {item.label}
+              {item.alertaAtendimento ? (
+                <span className="painel-nav-badge">{atendimentoNaoLidas}</span>
+              ) : null}
             </NavLink>
           ))}
         </nav>
@@ -510,11 +500,6 @@ function Painel() {
 
           {!isRejected && section === 'cadastro' && profile && (
             <div className="painel-section">
-              <header className="painel-section-head">
-                <div>
-                  <h2>Dados da conta</h2>
-                </div>
-              </header>
               <PainelCadastro profile={profile} canDelete={!isMaster} onSaved={refreshProfile} />
             </div>
           )}
@@ -537,7 +522,9 @@ function Painel() {
             </div>
           )}
 
-          {!isRejected && section === 'atendimento' && <PainelAtendimento />}
+          {!isRejected && section === 'atendimento' && user && (
+            <PainelAtendimento isMaster={isMaster} user={user} />
+          )}
         </div>
       </div>
     </div>

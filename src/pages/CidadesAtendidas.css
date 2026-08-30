@@ -434,12 +434,18 @@
   list-style: none;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  align-content: start;
   gap: 0;
   padding: 8px 0;
   border: 1px solid #e6ebf0;
   border-radius: 14px;
   background: #f8fafc;
-  overflow: hidden;
+  max-height: min(440px, calc(100dvh - 280px));
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: #c5d0e0 transparent;
 }
 
 .cidades-lista li {

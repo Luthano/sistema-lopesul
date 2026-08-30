@@ -115,6 +115,18 @@
   color: var(--painel-deep);
 }
 
+.painel-nav-badge {
+  margin-left: auto;
+  min-width: 20px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--btn);
+  color: var(--btn-ink);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-align: center;
+}
+
 .painel-sidebar-foot {
   padding: 14px 0 0;
   border-top: 1px solid var(--painel-line);

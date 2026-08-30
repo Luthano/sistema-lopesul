@@ -11,7 +11,7 @@ import {
   formatCityName,
   matchCity,
 } from './cidadesBusca'
-import { UFS_ATENDIDAS } from '../lib/ufsAtendidas'
+import { UF_NOMES, UFS_ATENDIDAS } from '../lib/ufsAtendidas'
 import './CidadesAtendidas.css'
 
 function cacheUfValido(data) {
@@ -158,12 +158,14 @@ function CidadesAtendidas() {
   const [ufDestino, setUfDestino] = useState('')
   const [cidadeDestino, setCidadeDestino] = useState('')
   const [loading, setLoading] = useState(false)
+  const [loadingLista, setLoadingLista] = useState(false)
   const [erro, setErro] = useState('')
   const [consulta, setConsulta] = useState(null)
   const [cacheUf, setCacheUf] = useState({})
   const [ufsDisponiveis, setUfsDisponiveis] = useState(UFS_ATENDIDAS)
   const [mapaFoco, setMapaFoco] = useState('destino')
   const [painelCidade, setPainelCidade] = useState(null)
+  const [listaUf, setListaUf] = useState('')
 
   useEffect(() => {
     let cancelled = false
@@ -179,20 +181,28 @@ function CidadesAtendidas() {
 
   const sugestoesOrigem = cacheUf[ufOrigem]?.cidades || []
   const sugestoesDestino = cacheUf[ufDestino]?.cidades || []
+  const cidadesDaUf = cacheUf[listaUf]?.cidades || []
+  const carregandoLista = Boolean(listaUf && !cacheUfValido(cacheUf[listaUf]) && loadingLista)
+  const cidadeListaFiltro = mapaFoco === 'origem' ? cidadeOrigem : cidadeDestino
 
   const ufsSelect = useMemo(() => {
     const base = ufsDisponiveis.length ? ufsDisponiveis : UFS_ATENDIDAS
     return base
   }, [ufsDisponiveis])
 
-  async function carregarUf(proximaUf) {
+  async function carregarUf(proximaUf, { comLoadingLista = false } = {}) {
     if (!proximaUf) return null
     const cached = cacheUf[proximaUf]
     if (cacheUfValido(cached)) return cached
 
-    const data = await buscarCidadesPorUf(proximaUf)
-    setCacheUf((prev) => ({ ...prev, [proximaUf]: data }))
-    return data
+    if (comLoadingLista) setLoadingLista(true)
+    try {
+      const data = await buscarCidadesPorUf(proximaUf)
+      setCacheUf((prev) => ({ ...prev, [proximaUf]: data }))
+      return data
+    } finally {
+      if (comLoadingLista) setLoadingLista(false)
+    }
   }
 
   async function pesquisar({ mostrarLoading = true } = {}) {
@@ -263,8 +273,10 @@ function CidadesAtendidas() {
     setUfDestino('')
     setCidadeDestino('')
     setConsulta(null)
+    setListaUf('')
     setErro('')
     setLoading(false)
+    setLoadingLista(false)
     setMapaFoco('destino')
     setPainelCidade(null)
   }
@@ -281,6 +293,7 @@ function CidadesAtendidas() {
   async function handleMapaUf(proximaUf) {
     setErro('')
     setConsulta(null)
+    setListaUf(proximaUf)
 
     if (mapaFoco === 'origem') {
       setUfOrigem(proximaUf)
@@ -291,10 +304,19 @@ function CidadesAtendidas() {
     }
 
     try {
-      await carregarUf(proximaUf)
+      await carregarUf(proximaUf, { comLoadingLista: true })
+      requestAnimationFrame(() => {
+        document.getElementById('cidades-lista-uf')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      })
     } catch (error) {
       setErro(error.message || 'Não foi possível carregar as cidades da UF.')
     }
+  }
+
+  function escolherCidadeLista(nome) {
+    const formatado = formatCityName(nome)
+    if (mapaFoco === 'origem') setCidadeOrigem(formatado)
+    else setCidadeDestino(formatado)
   }
 
   const selectedMapUf = mapaFoco === 'origem' ? ufOrigem : ufDestino
@@ -321,6 +343,7 @@ function CidadesAtendidas() {
                         onChange={(e) => {
                           setUfOrigem(e.target.value)
                           setConsulta(null)
+                          setListaUf('')
                           setMapaFoco('origem')
                           setPainelCidade(null)
                           if (e.target.value) carregarUf(e.target.value).catch(() => {})
@@ -359,6 +382,7 @@ function CidadesAtendidas() {
                         onChange={(e) => {
                           setUfDestino(e.target.value)
                           setConsulta(null)
+                          setListaUf('')
                           setMapaFoco('destino')
                           setPainelCidade(null)
                           if (e.target.value) carregarUf(e.target.value).catch(() => {})
@@ -400,8 +424,9 @@ function CidadesAtendidas() {
           </div>
         </section>
 
-        {consulta && (
+        {(consulta || listaUf) && (
           <section className="cidades-wrap cidades-resultado" id="cidades-resultado">
+            {consulta ? (
             <div className={`cidades-status cidades-status-unificado ${statusClass}`}>
               {consulta.tipo !== 'direta' ? (
                 <div className="cidades-status-titulo">
@@ -446,6 +471,51 @@ function CidadesAtendidas() {
                 </p>
               )}
             </div>
+            ) : (
+              <div id="cidades-lista-uf">
+                <div className="cidades-resultado-head">
+                  <div>
+                    <p className="cidades-map-label">
+                      Cidades de {mapaFoco === 'origem' ? 'saída' : 'destino'}
+                    </p>
+                    <h2>
+                      {carregandoLista
+                        ? `Carregando cidades em ${listaUf}…`
+                        : `${cidadesDaUf.length} cidade${cidadesDaUf.length === 1 ? '' : 's'} em ${listaUf}${
+                            UF_NOMES[listaUf] ? ` · ${UF_NOMES[listaUf]}` : ''
+                          }`}
+                    </h2>
+                  </div>
+                </div>
+
+                {carregandoLista ? (
+                  <p className="cidades-map-note">Buscando cobertura cadastrada…</p>
+                ) : cidadesDaUf.length === 0 ? (
+                  <p className="cidades-map-note">Nenhuma cidade cadastrada para esta UF.</p>
+                ) : (
+                  <ul className="cidades-lista">
+                    {cidadesDaUf.map((item) => {
+                      const nome = cityName(item)
+                      const siglas = citySiglas(item)
+                      const selecionada =
+                        String(cidadeListaFiltro || '').trim().toLocaleLowerCase('pt-BR') ===
+                        nome.toLocaleLowerCase('pt-BR')
+                      return (
+                        <li key={`${listaUf}-${nome}-${siglas.join('-')}`} className={selecionada ? 'is-match' : ''}>
+                          <button
+                            type="button"
+                            className="cidades-lista-btn"
+                            onClick={() => escolherCidadeLista(nome)}
+                          >
+                            <span className="cidades-lista-nome">{formatCityName(nome)}</span>
+                          </button>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                )}
+              </div>
+            )}
           </section>
         )}
       </div>
