@@ -10,7 +10,7 @@
   display: grid;
   gap: 6px;
   margin-top: 10px;
-  font-size: 0.8rem;
+  font-size: var(--fs-muted, 0.72rem);
   font-weight: 700;
   color: var(--painel-muted, #6b7280);
 }

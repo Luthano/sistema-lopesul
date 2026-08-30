@@ -1,5 +1,3 @@
-import { cubagemUnidadeM3 } from './cotacaoVolumes'
-
 function VolumesForm({ volumes, onChange, totais }) {
   function updateVolume(id, field, value) {
     onChange(volumes.map((v) => (v.id === id ? { ...v, [field]: value } : v)))
@@ -34,13 +32,7 @@ function VolumesForm({ volumes, onChange, totais }) {
       </div>
 
       <div className="volumes-list">
-        {volumes.map((item, index) => {
-          const cubUn = cubagemUnidadeM3(item.altura, item.largura, item.comprimento)
-          const qtd = Number(item.quantidade) || 0
-          const pesoLinha = (Number(item.peso) || 0) * qtd
-          const cubLinha = cubUn * qtd
-
-          return (
+        {volumes.map((item, index) => (
             <article className="volume-card" key={item.id}>
               <div className="volume-card-head">
                 <span className="volume-badge">Volume {index + 1}</span>
@@ -112,17 +104,12 @@ function VolumesForm({ volumes, onChange, totais }) {
                 </label>
               </div>
 
-              <div className="volume-card-foot">
-                <span>{pesoLinha.toFixed(3)} kg nesta linha</span>
-                <span>{cubLinha.toFixed(4)} m³ nesta linha</span>
-              </div>
             </article>
-          )
-        })}
+        ))}
       </div>
 
       <button type="button" className="btn-ghost" onClick={addVolume}>
-        + Adicionar outro volume
+        + Adicionar volume
       </button>
 
       <div className="volumes-summary">

@@ -33,12 +33,12 @@
 .cotacoes-hist-head h3 {
   margin: 0;
   color: var(--painel-deep, #062855);
-  font-size: 1rem;
+  font-size: 0.88rem;
 }
 
 .cotacoes-hist-head span {
   color: var(--painel-muted, #6b7280);
-  font-size: 0.86rem;
+  font-size: 0.72rem;
 }
 
 .cotacoes-hist-lista {
@@ -92,7 +92,7 @@
 
 .cotacoes-hist-main strong {
   color: var(--painel-deep, #062855);
-  font-size: 1.02rem;
+  font-size: 0.88rem;
 }
 
 .cotacoes-hist-carrier {
@@ -106,12 +106,12 @@
 
 .cotacoes-hist-main span {
   color: var(--painel-muted, #6b7280);
-  font-size: 0.84rem;
+  font-size: 0.72rem;
 }
 
 .cotacoes-hist-valor {
   color: var(--painel-deep, #062855);
-  font-size: 1.12rem;
+  font-size: 0.88rem;
   font-weight: 800;
 }
 
@@ -139,7 +139,7 @@
 .cotacoes-hist-empresas dd {
   margin: 0;
   color: #334155;
-  font-size: 0.84rem;
+  font-size: 0.78rem;
   font-weight: 600;
   word-break: break-word;
 }
@@ -150,7 +150,7 @@
   align-items: center;
   gap: 8px;
   color: #334155;
-  font-size: 0.92rem;
+  font-size: 0.78rem;
   font-weight: 600;
 }
 
@@ -159,7 +159,7 @@
   flex-wrap: wrap;
   gap: 8px 14px;
   color: var(--painel-muted, #6b7280);
-  font-size: 0.82rem;
+  font-size: 0.72rem;
 }
 
 @media (max-width: 720px) {

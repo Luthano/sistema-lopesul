@@ -41,8 +41,10 @@ export function agregarVolumes(volumes) {
 }
 
 export function volumeLinhaValido(item) {
-  const qtd = Number(item.quantidade) || 0
-  const peso = Number(item.peso) || 0
-  const cub = cubagemUnidadeM3(item.altura, item.largura, item.comprimento)
-  return qtd > 0 && (peso > 0 || cub > 0)
+  return (Number(item.quantidade) || 0) > 0
+}
+
+/** Sem A×L×C o SSW calcula pelo valor da NF (peso continua opcional). */
+export function temCubagem(volumes) {
+  return volumes.some((item) => cubagemUnidadeM3(item.altura, item.largura, item.comprimento) > 0)
 }

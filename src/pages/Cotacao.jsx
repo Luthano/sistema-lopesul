@@ -5,6 +5,7 @@ import CotacaoColetaForm from './CotacaoColetaForm'
 import {
   agregarVolumes,
   criarVolumeVazio,
+  temCubagem,
   volumeLinhaValido,
 } from './cotacaoVolumes'
 import { Link } from 'react-router-dom'
@@ -155,30 +156,33 @@ function Cotacao() {
       return
     }
 
+    if (!isValidCpfCnpj(form.cnpjRemetente)) {
+      setErro('Informe um CPF (11 dígitos) ou CNPJ (14 dígitos) do remetente.')
+      return
+    }
+
+    if (!isValidCpfCnpj(form.cnpjDestinatario)) {
+      setErro('Informe um CPF (11 dígitos) ou CNPJ (14 dígitos) do destinatário.')
+      return
+    }
+
     if (!isValidCpfCnpj(form.cnpjPagador)) {
       setErro('Informe um CPF (11 dígitos) ou CNPJ (14 dígitos) do pagador.')
       return
     }
 
-    const dest = onlyDigits(form.cnpjDestinatario)
-    if (dest && !isValidCpfCnpj(dest)) {
-      setErro('CPF/CNPJ do destinatário inválido.')
-      return
-    }
-
-    const remet = onlyDigits(form.cnpjRemetente)
-    if (remet && !isValidCpfCnpj(remet)) {
-      setErro('CPF/CNPJ do remetente inválido.')
-      return
-    }
-
     if (!volumes.every(volumeLinhaValido)) {
-      setErro('Cada volume precisa de quantidade e peso ou medidas (altura × largura × comprimento).')
+      setErro('Cada volume precisa de quantidade.')
       return
     }
 
-    if (totais.quantidade <= 0 || (totais.peso <= 0 && totais.volume <= 0)) {
-      setErro('Informe ao menos um volume com peso ou cubagem.')
+    if (totais.quantidade <= 0) {
+      setErro('Informe a quantidade de volumes.')
+      return
+    }
+
+    if (!(Number(form.valorNF) > 0)) {
+      setErro('Informe o valor da nota fiscal.')
       return
     }
 
@@ -271,12 +275,32 @@ function Cotacao() {
             <div className="section-heading">
               <span className="section-step">1</span>
               <div>
-                <h2>Quem paga o frete</h2>
+                <h2>CNPJ/CPF</h2>
               </div>
             </div>
 
             <div className="fields-grid">
-              <label className="field field-span-2">
+              <label className="field">
+                <span>Remetente *</span>
+                <input
+                  required
+                  value={form.cnpjRemetente}
+                  onChange={(e) => updateField('cnpjRemetente', e.target.value)}
+                  placeholder="CPF ou CNPJ"
+                  inputMode="numeric"
+                />
+              </label>
+              <label className="field">
+                <span>Destinatário *</span>
+                <input
+                  required
+                  value={form.cnpjDestinatario}
+                  onChange={(e) => updateField('cnpjDestinatario', e.target.value)}
+                  placeholder="CPF ou CNPJ"
+                  inputMode="numeric"
+                />
+              </label>
+              <label className="field">
                 <span>CPF ou CNPJ do pagador *</span>
                 <input
                   required
@@ -286,26 +310,7 @@ function Cotacao() {
                   inputMode="numeric"
                 />
               </label>
-
               <label className="field">
-                <span>Remetente (opcional)</span>
-                <input
-                  value={form.cnpjRemetente}
-                  onChange={(e) => updateField('cnpjRemetente', e.target.value)}
-                  placeholder="CPF ou CNPJ"
-                  inputMode="numeric"
-                />
-              </label>
-              <label className="field">
-                <span>Destinatário</span>
-                <input
-                  value={form.cnpjDestinatario}
-                  onChange={(e) => updateField('cnpjDestinatario', e.target.value)}
-                  placeholder="CPF ou CNPJ"
-                  inputMode="numeric"
-                />
-              </label>
-              <label className="field field-span-2">
                 <span>Tipo de mercadoria *</span>
                 <select
                   value={form.mercadoria}
@@ -327,7 +332,7 @@ function Cotacao() {
             <div className="section-heading">
               <span className="section-step">2</span>
               <div>
-                <h2>Rota e serviço</h2>
+                <h2>Rota</h2>
               </div>
             </div>
 
@@ -354,11 +359,6 @@ function Cotacao() {
                 label="Precisa de coleta?"
                 value={form.coletar}
                 onChange={(v) => updateField('coletar', v)}
-              />
-              <ToggleGroup
-                label="Entrega difícil?"
-                value={form.entDificil}
-                onChange={(v) => updateField('entDificil', v)}
               />
               <ToggleGroup
                 label="Destinatário é contribuinte de ICMS?"
@@ -460,6 +460,16 @@ function Cotacao() {
               <li>
                 <span>Valor NF</span>
                 <strong>{form.valorNF ? formatMoney(form.valorNF) : '—'}</strong>
+              </li>
+              <li>
+                <span>Cálculo</span>
+                <strong>
+                  {temCubagem(volumes)
+                    ? 'Por cubagem e NF'
+                    : totais.peso > 0
+                      ? 'Por peso e NF'
+                      : 'Pelo valor da NF'}
+                </strong>
               </li>
             </ul>
             <button type="submit" className="btn-primary" disabled={loading}>

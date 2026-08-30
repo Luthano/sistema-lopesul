@@ -151,9 +151,10 @@ export async function cotar(payload, credentialsOrCarrierId) {
   const credentials = resolveCredentials(credentialsOrCarrierId)
   const peso = Number(payload.peso) || 0
   const volume = Number(payload.volume) || 0
+  const valorNF = Number(payload.valorNF)
 
-  if (!peso && !volume) {
-    throw new Error('Informe peso ou volume (cubagem). Ambos não podem estar zerados.')
+  if (!peso && !volume && !(valorNF > 0)) {
+    throw new Error('Sem peso e sem cubagem, informe o valor da nota fiscal.')
   }
 
   const fields = {
@@ -161,7 +162,7 @@ export async function cotar(payload, credentialsOrCarrierId) {
     cnpjPagador: onlyDigits(payload.cnpjPagador),
     cepOrigem: onlyDigits(payload.cepOrigem),
     cepDestino: onlyDigits(payload.cepDestino),
-    valorNF: Number(payload.valorNF),
+    valorNF,
     quantidade: Number(payload.quantidade),
     peso,
     volume,

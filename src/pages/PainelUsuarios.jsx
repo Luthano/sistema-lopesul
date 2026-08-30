@@ -200,7 +200,7 @@ function PainelUsuarios({ masterId, onChanged }) {
     : null
 
   return (
-    <section className="painel-admin">
+    <section className="painel-admin usuarios-admin">
       <div className="user-filters" role="tablist" aria-label="Filtrar usuários">
         {FILTROS.map((item) => (
           <button
