@@ -255,10 +255,37 @@
 .user-card-footer {
   display: flex;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 12px;
-  align-items: center;
+  align-items: end;
   padding-top: 4px;
   border-top: 1px solid var(--line);
+}
+
+.user-tipo {
+  display: grid;
+  gap: 4px;
+  min-width: 168px;
+}
+
+.user-tipo span {
+  color: var(--muted);
+  font-size: var(--fs-label, 0.62rem);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.user-tipo select {
+  min-height: 32px;
+  padding: 4px 10px;
+  border: 1px solid var(--painel-line, #e5e7eb);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--brand-deep);
+  font: inherit;
+  font-size: var(--fs-btn, 0.72rem);
+  font-weight: 700;
 }
 
 .user-card-footer p,

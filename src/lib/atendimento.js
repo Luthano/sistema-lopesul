@@ -3,6 +3,7 @@ import { supabase } from './supabase'
 
 export const SETORES_ATENDIMENTO = [
   { id: 'financeiro', label: 'Financeiro' },
+  { id: 'comercial', label: 'Comercial' },
   { id: 'agencias', label: 'Agências' },
   { id: 'administrativo', label: 'Administrativo' },
 ]

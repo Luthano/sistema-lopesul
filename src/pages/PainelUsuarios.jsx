@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { formatCnpj, formatCpf, formatPhone, isProfileComplete, profileInitials } from '../lib/profile'
+import { labelTipoConta, TIPOS_CONTA } from '../lib/tiposConta'
 import './PainelUsuarios.css'
 
 const FILTROS = [
@@ -124,6 +125,33 @@ function PainelUsuarios({ masterId, onChanged }) {
     onChanged?.()
     setSavingId('')
     return true
+  }
+
+  async function aplicarTipo(usuario, tipoConta) {
+    if (!tipoConta || tipoConta === (usuario.tipo_conta || 'cliente')) return
+    setSavingId(usuario.id)
+    setErro('')
+    setInfo('')
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({ tipo_conta: tipoConta })
+      .eq('id', usuario.id)
+      .select('id, email, tipo_conta')
+      .maybeSingle()
+
+    if (error || !data || data.tipo_conta !== tipoConta) {
+      setErro(
+        error?.message ||
+          'Não foi possível trocar o tipo de conta. Confirme se o SQL 018_tipo_conta.sql foi aplicado.',
+      )
+      setSavingId('')
+      return
+    }
+
+    setInfo(`Conta ${data.email} definida como ${labelTipoConta(data.tipo_conta)}.`)
+    await carregar()
+    setSavingId('')
   }
 
   async function excluirUsuario(usuario) {
@@ -254,6 +282,9 @@ function PainelUsuarios({ masterId, onChanged }) {
                   <div className="user-card-badges">
                     <span className={`user-badge ${status.className}`}>{status.label}</span>
                     {isMasterAccount ? <span className="user-badge is-role">Master</span> : null}
+                    {!isMasterAccount ? (
+                      <span className="user-badge is-role">{labelTipoConta(usuario.tipo_conta)}</span>
+                    ) : null}
                     <span className={`user-badge ${completo ? 'is-ok' : 'is-warn'}`}>
                       {completo ? 'Dados completos' : 'Dados incompletos'}
                     </span>
@@ -270,6 +301,20 @@ function PainelUsuarios({ masterId, onChanged }) {
 
                 {isMasterAccount ? null : (
                   <footer className="user-card-footer">
+                    <label className="user-tipo">
+                      <span>Tipo de conta</span>
+                      <select
+                        value={usuario.tipo_conta || 'cliente'}
+                        disabled={salvando}
+                        onChange={(event) => aplicarTipo(usuario, event.target.value)}
+                      >
+                        {TIPOS_CONTA.map((item) => (
+                          <option key={item.id} value={item.id}>
+                            {item.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
                     <div className="user-card-actions">
                       <button
                         type="button"

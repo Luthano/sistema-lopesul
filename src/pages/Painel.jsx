@@ -86,6 +86,7 @@ function resolveSection(pathname) {
 
 function PainelInicio({
   isApproved,
+  isEquipe,
   canUseCotacao,
   busy,
   resumo,
@@ -100,7 +101,11 @@ function PainelInicio({
       </header>
 
       <section className="painel-cards" aria-label="Atalhos">
-        {canUseCotacao ? (
+        {isEquipe ? (
+          <button type="button" className="painel-card is-action is-primary" onClick={() => onNavigate('atendimento')}>
+            <strong>Atendimento</strong>
+          </button>
+        ) : canUseCotacao ? (
           <Link to="/cotacao" className="painel-card is-action is-primary">
             <strong>Nova cotação</strong>
           </Link>
@@ -109,12 +114,14 @@ function PainelInicio({
             <strong>Nova cotação</strong>
           </button>
         )}
-        <button type="button" className="painel-card is-action" onClick={() => onNavigate('rastreamento')}>
-          <strong>Rastrear</strong>
-        </button>
+        {isEquipe ? null : (
+          <button type="button" className="painel-card is-action" onClick={() => onNavigate('rastreamento')}>
+            <strong>Rastrear</strong>
+          </button>
+        )}
       </section>
 
-      {isApproved ? (
+      {isApproved && !isEquipe ? (
         <section className="painel-cards painel-cards-stats" aria-label="Indicadores">
           <button
             type="button"
@@ -149,6 +156,7 @@ function Painel() {
     loading,
     signOut,
     isMaster,
+    isEquipe,
     isApproved,
     isRejected,
     canUseCotacao,
@@ -167,7 +175,7 @@ function Painel() {
   const [avisoCadastroAberto, setAvisoCadastroAberto] = useState(false)
   const avisoLoginRef = useRef('')
   const [aguardandoAprovacao, setAguardandoAprovacao] = useState(0)
-  const atendimentoNaoLidas = useAtendimentoNaoLidas(user?.id, isMaster)
+  const atendimentoNaoLidas = useAtendimentoNaoLidas(user?.id, isMaster || isEquipe)
 
   const section = resolveSection(location.pathname)
 
@@ -200,7 +208,7 @@ function Painel() {
       return undefined
     }
 
-    if (loading || !profile || isMaster || isRejected) return undefined
+    if (loading || !profile || isMaster || isEquipe || isRejected) return undefined
 
     if (profileComplete && isApproved) {
       setAvisoCadastroAberto(false)
@@ -212,7 +220,7 @@ function Painel() {
     avisoLoginRef.current = user.id
     setAvisoCadastroAberto(true)
     return undefined
-  }, [user, profile, loading, isMaster, isRejected, profileComplete, isApproved])
+  }, [user, profile, loading, isMaster, isEquipe, isRejected, profileComplete, isApproved])
 
   useEffect(() => {
     if (!isMaster || !user) return undefined
@@ -222,6 +230,19 @@ function Painel() {
   }, [isMaster, user, carregarPendenciasAprovacao, section])
 
   const navItems = useMemo(() => {
+    if (isEquipe) {
+      return [
+        { id: 'inicio', label: 'Início', icon: ICONS.home },
+        {
+          id: 'atendimento',
+          label: 'Atendimento',
+          icon: ICONS.support,
+          alertaAtendimento: atendimentoNaoLidas > 0,
+        },
+        { id: 'cadastro', label: 'Cadastro', icon: ICONS.profile },
+      ]
+    }
+
     const items = [
       { id: 'inicio', label: 'Início', icon: ICONS.home },
       { id: 'rastreamento', label: 'Rastreamento', icon: ICONS.track },
@@ -251,7 +272,7 @@ function Painel() {
       },
     )
     return items
-  }, [isMaster, aguardandoAprovacao, atendimentoNaoLidas])
+  }, [isMaster, isEquipe, aguardandoAprovacao, atendimentoNaoLidas])
 
   useEffect(() => {
     setMenuOpen(false)
@@ -307,6 +328,7 @@ function Painel() {
     user &&
     profile &&
     !isMaster &&
+    !isEquipe &&
     !isRejected &&
     !profileComplete &&
     section !== 'cadastro'
@@ -318,7 +340,10 @@ function Painel() {
     !loading &&
     user &&
     !isMaster &&
-    (section === 'usuarios' || section === 'cobertura' || section === 'veiculos')
+    (section === 'usuarios' ||
+      section === 'cobertura' ||
+      section === 'veiculos' ||
+      (isEquipe && (section === 'cotacoes' || section === 'rastreamento')))
   ) {
     return <Navigate to="/painel" replace />
   }
@@ -472,6 +497,7 @@ function Painel() {
           {!isRejected && section === 'inicio' && (
             <PainelInicio
               isApproved={isApproved}
+              isEquipe={isEquipe}
               canUseCotacao={canUseCotacao}
               busy={busy}
               resumo={resumo}

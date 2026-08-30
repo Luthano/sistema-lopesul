@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { supabase, supabaseConfigured } from '../lib/supabase'
 import { isMasterEmail } from '../lib/master'
 import { isProfileComplete } from '../lib/profile'
+import { isEquipeTipo } from '../lib/tiposConta'
 
 const AuthContext = createContext(null)
 
@@ -85,8 +86,11 @@ export function AuthProvider({ children }) {
   const isApproved = profile?.status === 'approved' || isMaster
   const isPending = Boolean(user) && !isApproved && profile?.status !== 'rejected'
   const isRejected = profile?.status === 'rejected'
-  const profileComplete = isMaster || isProfileComplete(profile)
-  const canUseCotacao = Boolean(user) && !isRejected && isApproved && profileComplete
+  const isEquipe = Boolean(
+    user && isApproved && !isMaster && isEquipeTipo(profile?.tipo_conta),
+  )
+  const profileComplete = isMaster || isEquipe || isProfileComplete(profile)
+  const canUseCotacao = Boolean(user) && !isRejected && isApproved && profileComplete && !isEquipe
 
   const value = useMemo(
     () => ({
@@ -96,6 +100,7 @@ export function AuthProvider({ children }) {
       profile,
       loading,
       isMaster,
+      isEquipe,
       isApproved,
       isPending,
       isRejected,
@@ -106,7 +111,7 @@ export function AuthProvider({ children }) {
       signUp: (email, password) => supabase.auth.signUp({ email, password }),
       signOut: () => supabase.auth.signOut(),
     }),
-    [session, user, profile, loading, isMaster, isApproved, isPending, isRejected, profileComplete, canUseCotacao, refreshProfile],
+    [session, user, profile, loading, isMaster, isEquipe, isApproved, isPending, isRejected, profileComplete, canUseCotacao, refreshProfile],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

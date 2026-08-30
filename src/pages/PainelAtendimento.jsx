@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useAuth } from '../context/AuthContext'
 import {
   buscarConversaCliente,
   enviarMensagem,
@@ -12,6 +13,7 @@ import {
   SETORES_ATENDIMENTO,
 } from '../lib/atendimento'
 import { enviarArquivoConversa } from '../lib/atendimentoAnexos'
+import { setoresDaConta } from '../lib/tiposConta'
 import { supabase } from '../lib/supabase'
 import AtendimentoComposer from './AtendimentoComposer'
 import AtendimentoMidia from './AtendimentoMidia'
@@ -34,10 +36,10 @@ function Avatar({ nome }) {
   )
 }
 
-function BotoesSetor({ ativo, onEscolher, naoLidas = {} }) {
+function BotoesSetor({ ativo, onEscolher, naoLidas = {}, setores = SETORES_ATENDIMENTO }) {
   return (
     <div className="atend-setores" role="tablist" aria-label="Setor de atendimento">
-      {SETORES_ATENDIMENTO.map((item) => (
+      {setores.map((item) => (
         <button
           key={item.id}
           type="button"
@@ -448,11 +450,28 @@ function ChatMaster({ user, setor, onSetor }) {
 }
 
 function PainelAtendimento({ isMaster, user }) {
+  const { isEquipe, profile } = useAuth()
+  const isAtendente = isMaster || isEquipe
   const [setor, setSetor] = useState('')
   const [naoLidas, setNaoLidas] = useState({})
+  const setoresFiltro = useMemo(
+    () => setoresDaConta(profile?.tipo_conta, isMaster),
+    [profile?.tipo_conta, isMaster],
+  )
+  const setoresBotoes = useMemo(
+    () =>
+      setoresFiltro
+        ? SETORES_ATENDIMENTO.filter((item) => setoresFiltro.includes(item.id))
+        : SETORES_ATENDIMENTO,
+    [setoresFiltro],
+  )
+
+  useEffect(() => {
+    if (setoresFiltro?.length === 1) setSetor(setoresFiltro[0])
+  }, [setoresFiltro])
 
   const atualizarNaoLidas = useCallback(async () => {
-    if (isMaster) {
+    if (isAtendente) {
       const lista = await listarConversasMaster()
       const mapa = {}
       for (const item of lista) {
@@ -467,7 +486,7 @@ function PainelAtendimento({ isMaster, user }) {
       mapa[item.setor] = item.nao_lidas_cliente || 0
     }
     setNaoLidas(mapa)
-  }, [isMaster, user.id])
+  }, [isAtendente, user.id])
 
   useEffect(() => {
     atualizarNaoLidas().catch(() => {})
@@ -489,8 +508,8 @@ function PainelAtendimento({ isMaster, user }) {
   return (
     <div className="painel-section atend-page">
       <div className="atend-app">
-        <BotoesSetor ativo={setor} onEscolher={setSetor} naoLidas={naoLidas} />
-        {isMaster ? (
+        <BotoesSetor ativo={setor} onEscolher={setSetor} naoLidas={naoLidas} setores={setoresBotoes} />
+        {isAtendente ? (
           <ChatMaster user={user} setor={setor} onSetor={setSetor} />
         ) : (
           <ChatCliente user={user} setor={setor} onSetor={setSetor} />
