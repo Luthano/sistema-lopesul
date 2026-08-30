@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { authFetch } from '../lib/authFetch'
 import { supabase } from '../lib/supabase'
-import { UFS_BRASIL } from '../lib/ufsAtendidas'
+import { UF_NOMES, UFS_BRASIL } from '../lib/ufsAtendidas'
 import './PainelCidadesAdmin.css'
 
 function normalizeCityLine(value) {
@@ -22,6 +22,40 @@ function sortCidades(lista) {
   )
 }
 
+function CobConfirm({ titleId, title, children, onCancel, onConfirm, confirmLabel, saving, danger }) {
+  return (
+    <div
+      className="cob-confirm-backdrop"
+      role="presentation"
+      onClick={() => !saving && onCancel()}
+    >
+      <div
+        className="cob-confirm"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        onClick={(event) => event.stopPropagation()}
+      >
+        <h3 id={titleId}>{title}</h3>
+        <p>{children}</p>
+        <div className="cob-confirm-actions">
+          <button type="button" className="cob-btn cob-btn-ghost" onClick={onCancel} disabled={saving}>
+            Cancelar
+          </button>
+          <button
+            type="button"
+            className={`cob-btn ${danger ? 'cob-btn-danger' : 'cob-btn-primary'}`}
+            onClick={onConfirm}
+            disabled={saving}
+          >
+            {saving ? 'Aguarde…' : confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function PainelCidadesAdmin() {
   const [carriers, setCarriers] = useState([])
   const [carrierId, setCarrierId] = useState('')
@@ -30,12 +64,12 @@ function PainelCidadesAdmin() {
   const [lote, setLote] = useState('')
   const [novaCidade, setNovaCidade] = useState('')
   const [filtro, setFiltro] = useState('')
+  const [modoAdd, setModoAdd] = useState('uma')
   const [erro, setErro] = useState('')
   const [info, setInfo] = useState('')
   const [loadingCarriers, setLoadingCarriers] = useState(true)
   const [loadingCidades, setLoadingCidades] = useState(false)
   const [saving, setSaving] = useState(false)
-
   const [editId, setEditId] = useState('')
   const [editNome, setEditNome] = useState('')
   const [confirmLimparUf, setConfirmLimparUf] = useState(false)
@@ -122,6 +156,20 @@ function PainelCidadesAdmin() {
       active = false
     }
   }, [carrierId, uf, carregarCidades])
+
+  useEffect(() => {
+    function onKey(event) {
+      if (event.key !== 'Escape' || saving) return
+      if (confirmSincronizar) setConfirmSincronizar(false)
+      else if (confirmLimparUf) setConfirmLimparUf(false)
+      else if (editId) {
+        setEditId('')
+        setEditNome('')
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [confirmSincronizar, confirmLimparUf, editId, saving])
 
   function abrirEdicao(item) {
     setEditId(item.id)
@@ -286,6 +334,10 @@ function PainelCidadesAdmin() {
 
   const toolbarBusy = loadingCarriers && !carriers.length
   const showListaVazia = !loadingCidades && cidadesFiltradas.length === 0
+  const ufNome = UF_NOMES[uf] || uf
+  const totalLabel = filtro.trim()
+    ? `${cidadesFiltradas.length} de ${cidades.length}`
+    : String(cidades.length)
 
   return (
     <section className="painel-admin cob-admin">
@@ -296,236 +348,260 @@ function PainelCidadesAdmin() {
       )}
       {info && <p className="auth-info">{info}</p>}
 
-      <div className="cob-toolbar">
-        <label>
-          <span>Transportadora</span>
-          <select
-            value={carrierId}
-            onChange={(e) => setCarrierId(e.target.value)}
-            disabled={toolbarBusy || !carriers.length}
-          >
-            {!carriers.length && <option value="">Nenhuma cadastrada</option>}
-            {carriers.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.nome} ({item.sigla})
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          <span>UF</span>
-          <select value={uf} onChange={(e) => setUf(e.target.value)} disabled={toolbarBusy}>
-            {UFS_BRASIL.map((item) => (
-              <option key={item} value={item}>
-                {item}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="cob-filter">
-          <span>Filtrar lista</span>
-          <input value={filtro} onChange={(e) => setFiltro(e.target.value)} placeholder="Buscar cidade" />
-        </label>
-      </div>
-
-      <div className="cob-grid">
-        <form className="cob-card" onSubmit={handleAddUma}>
-          <h3>Adicionar cidade</h3>
-          <input
-            value={novaCidade}
-            onChange={(e) => setNovaCidade(e.target.value)}
-            placeholder="Ex.: Cascavel"
-            disabled={saving || !carrierId}
-          />
-          <button type="submit" className="painel-section-cta" disabled={saving || !carrierId}>
-            Salvar cidade
-          </button>
-        </form>
-
-        <form className="cob-card" onSubmit={handleAddLote}>
-          <h3>Importar em lote</h3>
-          <textarea
-            value={lote}
-            onChange={(e) => setLote(e.target.value)}
-            rows={8}
-            placeholder={'Cascavel\nMaringa\nLondrina'}
-            disabled={saving || !carrierId}
-          />
-          <button type="submit" className="painel-section-cta" disabled={saving || !carrierId}>
-            Importar lista
-          </button>
-        </form>
-
-        <div className="cob-card">
-          <h3>Sincronizar do SSW</h3>
-          <button
-            type="button"
-            className="painel-section-cta"
-            disabled={saving || !carrierId}
-            onClick={() => {
-              setErro('')
-              setInfo('')
-              setConfirmSincronizar(true)
-            }}
-          >
-            Buscar cidades no SSW
-          </button>
-        </div>
-      </div>
-
-      <div className="cob-list-head">
-        <div>
-          <strong>
-            {cidadesFiltradas.length} cidade(s) em {uf}
-            {loadingCidades ? ' · atualizando…' : ''}
-          </strong>
-          <span>{carrier ? `${carrier.nome} · ${carrier.sigla}` : ''}</span>
+      <div className="cob-top">
+        <div className="cob-top-copy">
+          {carriers.length > 1 ? (
+            <label className="cob-field">
+              <span>Transportadora</span>
+              <select
+                value={carrierId}
+                onChange={(e) => setCarrierId(e.target.value)}
+                disabled={toolbarBusy || !carriers.length}
+              >
+                {!carriers.length && <option value="">Nenhuma cadastrada</option>}
+                {carriers.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.nome} ({item.sigla})
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : (
+            <p className="cob-carrier-chip">
+              <span>{carrier?.sigla || 'LS'}</span>
+              {carrier?.nome || 'Lopesul'}
+            </p>
+          )}
         </div>
         <button
           type="button"
-          className="painel-section-cta cob-btn-compact"
-          onClick={pedirConfirmacaoLimparUf}
-          disabled={saving || loadingCidades || !cidades.length}
+          className="cob-btn cob-btn-ghost"
+          disabled={saving || !carrierId}
+          onClick={() => {
+            setErro('')
+            setInfo('')
+            setConfirmSincronizar(true)
+          }}
         >
-          Limpar UF
+          Sincronizar do SSW
         </button>
       </div>
 
-      {confirmSincronizar && (
-        <div
-          className="cob-confirm-backdrop"
-          role="presentation"
-          onClick={() => !saving && setConfirmSincronizar(false)}
-        >
-          <div
-            className="cob-confirm"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="cob-sync-title"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 id="cob-sync-title">Sincronizar cobertura com o SSW?</h3>
-            <p>
-              Isso consulta as cidades atendidas da Lopesul no SSW e <strong>substitui</strong> a
-              cobertura atual no sistema. A consulta leva cerca de um minuto.
-            </p>
-            <div className="cob-confirm-actions">
-              <button
-                type="button"
-                className="painel-section-cta is-ghost cob-btn-compact"
-                onClick={() => setConfirmSincronizar(false)}
-                disabled={saving}
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                className="painel-section-cta cob-btn-compact"
-                onClick={confirmarSincronizarSsw}
-                disabled={saving}
-              >
-                Sim, sincronizar
-              </button>
+      <div className="cob-workspace">
+        <div className="cob-board">
+          <div className="cob-board-toolbar">
+            <label className="cob-field cob-field-uf">
+              <span>UF</span>
+              <select value={uf} onChange={(e) => setUf(e.target.value)} disabled={toolbarBusy}>
+                {UFS_BRASIL.map((item) => (
+                  <option key={item} value={item}>
+                    {item} — {UF_NOMES[item] || item}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="cob-field cob-field-search">
+              <span>Buscar na lista</span>
+              <input
+                value={filtro}
+                onChange={(e) => setFiltro(e.target.value)}
+                placeholder="Digite o nome da cidade"
+              />
+            </label>
+          </div>
+
+          <div className="cob-board-meta">
+            <strong>
+              {totalLabel} cidade{cidadesFiltradas.length === 1 ? '' : 's'}
+            </strong>
+            <span>
+              {ufNome}
+              {loadingCidades ? ' · atualizando…' : ''}
+            </span>
+          </div>
+
+          <div className="cob-board-body">
+          {loadingCidades && cidades.length === 0 ? (
+            <div className="cob-empty">
+              <strong>Carregando cidades…</strong>
+              <p>Buscando a malha de {ufNome}.</p>
             </div>
+          ) : showListaVazia ? (
+            <div className="cob-empty">
+              <strong>
+                {filtro.trim()
+                  ? `Nenhum resultado para “${filtro.trim()}”`
+                  : `Nenhuma cidade em ${uf}`}
+              </strong>
+              <p>
+                {filtro.trim()
+                  ? 'Ajuste a busca ou limpe o filtro para ver a lista completa.'
+                  : 'Inclua uma cidade ao lado ou sincronize a malha com o SSW.'}
+              </p>
+            </div>
+          ) : (
+            <ul className={`cob-lista${loadingCidades ? ' is-refreshing' : ''}`}>
+              {cidadesFiltradas.map((item) => {
+                const editando = editId === item.id
+                return (
+                  <li key={item.id} className={editando ? 'is-editing' : ''}>
+                    {editando ? (
+                      <form className="cob-edit-form" onSubmit={salvarEdicao}>
+                        <input
+                          value={editNome}
+                          onChange={(e) => setEditNome(e.target.value)}
+                          disabled={saving}
+                          autoFocus
+                          aria-label="Nome da cidade"
+                        />
+                        <div className="cob-edit-actions">
+                          <button type="submit" className="cob-btn cob-btn-primary cob-btn-sm" disabled={saving}>
+                            Salvar
+                          </button>
+                          <button
+                            type="button"
+                            className="cob-btn cob-btn-ghost cob-btn-sm"
+                            onClick={fecharEdicao}
+                            disabled={saving}
+                          >
+                            Cancelar
+                          </button>
+                          <button
+                            type="button"
+                            className="cob-btn cob-btn-danger-ghost cob-btn-sm"
+                            onClick={() => removerCidade(item.id)}
+                            disabled={saving}
+                          >
+                            Remover
+                          </button>
+                        </div>
+                      </form>
+                    ) : (
+                      <>
+                        <span>{formatCityName(item.cidade)}</span>
+                        <button
+                          type="button"
+                          className="cob-edit-open"
+                          onClick={() => abrirEdicao(item)}
+                          disabled={saving}
+                        >
+                          Editar
+                        </button>
+                      </>
+                    )}
+                  </li>
+                )
+              })}
+            </ul>
+          )}
           </div>
         </div>
+
+        <aside className="cob-composer">
+          <header className="cob-composer-head">
+            <h3>Incluir cidades</h3>
+            <p>
+              Cadastro em <strong>{uf}</strong> · {ufNome}
+            </p>
+          </header>
+
+          <div className="cob-tabs" role="tablist" aria-label="Forma de inclusão">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={modoAdd === 'uma'}
+              className={modoAdd === 'uma' ? 'is-active' : ''}
+              onClick={() => setModoAdd('uma')}
+            >
+              Uma cidade
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={modoAdd === 'lote'}
+              className={modoAdd === 'lote' ? 'is-active' : ''}
+              onClick={() => setModoAdd('lote')}
+            >
+              Em lote
+            </button>
+          </div>
+
+          {modoAdd === 'uma' ? (
+            <form className="cob-composer-form" onSubmit={handleAddUma}>
+              <label className="cob-field">
+                <span>Nome da cidade</span>
+                <input
+                  value={novaCidade}
+                  onChange={(e) => setNovaCidade(e.target.value)}
+                  placeholder="Ex.: Cascavel"
+                  disabled={saving || !carrierId}
+                />
+              </label>
+              <button type="submit" className="cob-btn cob-btn-primary" disabled={saving || !carrierId}>
+                Salvar cidade
+              </button>
+            </form>
+          ) : (
+            <form className="cob-composer-form" onSubmit={handleAddLote}>
+              <label className="cob-field">
+                <span>Lista de cidades</span>
+                <textarea
+                  value={lote}
+                  onChange={(e) => setLote(e.target.value)}
+                  rows={7}
+                  placeholder={'Cascavel\nMaringá\nLondrina'}
+                  disabled={saving || !carrierId}
+                />
+              </label>
+              <p className="cob-hint">Uma por linha, ou separadas por vírgula.</p>
+              <button type="submit" className="cob-btn cob-btn-primary" disabled={saving || !carrierId}>
+                Importar lista
+              </button>
+            </form>
+          )}
+
+          <div className="cob-danger">
+            <p>Remove todas as cidades desta UF.</p>
+            <button
+              type="button"
+              className="cob-btn cob-btn-danger-ghost"
+              onClick={pedirConfirmacaoLimparUf}
+              disabled={saving || loadingCidades || !cidades.length}
+            >
+              Limpar {uf}
+            </button>
+          </div>
+        </aside>
+      </div>
+
+      {confirmSincronizar && (
+        <CobConfirm
+          titleId="cob-sync-title"
+          title="Sincronizar cobertura com o SSW?"
+          confirmLabel="Sim, sincronizar"
+          saving={saving}
+          onCancel={() => setConfirmSincronizar(false)}
+          onConfirm={confirmarSincronizarSsw}
+        >
+          Isso consulta as cidades atendidas da Lopesul no SSW e <strong>substitui</strong> a
+          cobertura atual no sistema. A consulta leva cerca de um minuto.
+        </CobConfirm>
       )}
 
       {confirmLimparUf && (
-        <div
-          className="cob-confirm-backdrop"
-          role="presentation"
-          onClick={() => !saving && setConfirmLimparUf(false)}
+        <CobConfirm
+          titleId="cob-confirm-title"
+          title="Limpar cobertura desta UF?"
+          confirmLabel={`Sim, limpar ${uf}`}
+          saving={saving}
+          danger
+          onCancel={() => setConfirmLimparUf(false)}
+          onConfirm={confirmarLimparUf}
         >
-          <div
-            className="cob-confirm"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="cob-confirm-title"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 id="cob-confirm-title">Limpar cobertura desta UF?</h3>
-            <p>
-              Isso remove <strong>todas as {cidades.length} cidade(s)</strong> de{' '}
-              <strong>{uf}</strong> em{' '}
-              <strong>{carrier ? `${carrier.nome} (${carrier.sigla})` : 'esta transportadora'}</strong>.
-              A ação não pode ser desfeita pelo painel.
-            </p>
-            <div className="cob-confirm-actions">
-              <button
-                type="button"
-                className="painel-section-cta is-ghost cob-btn-compact"
-                onClick={() => setConfirmLimparUf(false)}
-                disabled={saving}
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                className="painel-section-cta cob-btn-compact"
-                onClick={confirmarLimparUf}
-                disabled={saving}
-              >
-                Sim, limpar UF
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {loadingCidades && cidades.length === 0 ? (
-        <p className="painel-muted">Carregando…</p>
-      ) : showListaVazia ? (
-        <p className="painel-muted">Nenhuma cidade nesta UF para a transportadora selecionada.</p>
-      ) : (
-        <ul className={`cob-lista${loadingCidades ? ' is-refreshing' : ''}`}>
-          {cidadesFiltradas.map((item) => {
-            const editando = editId === item.id
-            return (
-              <li key={item.id} className={editando ? 'is-editing' : ''}>
-                {editando ? (
-                  <form className="cob-edit-form" onSubmit={salvarEdicao}>
-                    <input
-                      value={editNome}
-                      onChange={(e) => setEditNome(e.target.value)}
-                      disabled={saving}
-                      autoFocus
-                      aria-label="Nome da cidade"
-                    />
-                    <div className="cob-edit-actions">
-                      <button type="submit" className="painel-section-cta cob-btn-compact" disabled={saving}>
-                        Salvar
-                      </button>
-                      <button
-                        type="button"
-                        className="painel-section-cta is-ghost cob-btn-compact"
-                        onClick={fecharEdicao}
-                        disabled={saving}
-                      >
-                        Cancelar
-                      </button>
-                      <button
-                        type="button"
-                        className="painel-section-cta cob-btn-compact"
-                        onClick={() => removerCidade(item.id)}
-                        disabled={saving}
-                      >
-                        Remover
-                      </button>
-                    </div>
-                  </form>
-                ) : (
-                  <>
-                    <span>{formatCityName(item.cidade)}</span>
-                    <button type="button" className="cob-edit-open" onClick={() => abrirEdicao(item)} disabled={saving}>
-                      Editar
-                    </button>
-                  </>
-                )}
-              </li>
-            )
-          })}
-        </ul>
+          Isso remove <strong>todas as {cidades.length} cidade(s)</strong> de <strong>{ufNome}</strong>{' '}
+          em <strong>{carrier ? `${carrier.nome} (${carrier.sigla})` : 'esta transportadora'}</strong>.
+          A ação não pode ser desfeita pelo painel.
+        </CobConfirm>
       )}
     </section>
   )

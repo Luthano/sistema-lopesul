@@ -171,6 +171,17 @@
   margin-left: auto;
 }
 
+.painel-main-bar.is-titleless {
+  padding-top: 8px;
+  padding-bottom: 0;
+}
+
+@media (min-width: 861px) {
+  .painel-main-bar.is-titleless {
+    display: none;
+  }
+}
+
 .painel-main-bar h1 {
   margin: 0;
   font-family: var(--font-display, inherit);

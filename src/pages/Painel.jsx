@@ -2,9 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, Navigate, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
-import { authFetch } from '../lib/authFetch'
 import { isProfileComplete } from '../lib/profile'
-import { UFS_ATENDIDAS } from '../lib/ufsAtendidas'
 import RastreioPanel from '../components/RastreioPanel'
 import PainelUsuarios from './PainelUsuarios'
 import PainelCadastro from './PainelCadastro'
@@ -112,9 +110,6 @@ function PainelInicio({
         <button type="button" className="painel-card is-action" onClick={() => onNavigate('rastreamento')}>
           <strong>Rastrear</strong>
         </button>
-        <button type="button" className="painel-card is-action" onClick={() => onNavigate('cidades')}>
-          <strong>Cidades</strong>
-        </button>
       </section>
 
       {isApproved ? (
@@ -142,44 +137,6 @@ function PainelInicio({
           </article>
         </section>
       ) : null}
-    </div>
-  )
-}
-
-function PainelCidades() {
-  const [ufs, setUfs] = useState([])
-
-  useEffect(() => {
-    let cancelled = false
-    authFetch('/api/cidades?meta=ufs')
-      .then((res) => res.json())
-      .then((data) => {
-        if (!cancelled && Array.isArray(data.ufs)) setUfs(data.ufs)
-      })
-      .catch(() => {})
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
-  return (
-    <div className="painel-section">
-      <header className="painel-section-head">
-        <div>
-          <h2>Cobertura Lopesul</h2>
-        </div>
-        <Link to="/cidades-atendidas" className="painel-section-cta">
-          Abrir consulta completa
-        </Link>
-      </header>
-
-      <div className="painel-uf-grid">
-        {(ufs.length ? ufs : UFS_ATENDIDAS.slice(0, 8)).map((uf) => (
-          <Link key={uf} to="/cidades-atendidas" className="painel-uf-card">
-            <strong>{uf}</strong>
-          </Link>
-        ))}
-      </div>
     </div>
   )
 }
@@ -305,12 +262,9 @@ function Painel() {
           icon: ICONS.users,
           alertaAprovacao: aguardandoAprovacao > 0,
         },
-        { id: 'cidades', label: 'Cidades', icon: ICONS.cities },
         { id: 'cobertura', label: 'Cobertura', icon: ICONS.cities },
         { id: 'veiculos', label: 'Veículos', icon: ICONS.truck },
       )
-    } else {
-      items.push({ id: 'cidades', label: 'Cidades', icon: ICONS.cities })
     }
 
     items.push(
@@ -488,7 +442,7 @@ function Painel() {
       ) : null}
 
       <div className="painel-main">
-        <header className="painel-main-bar">
+        <header className={`painel-main-bar${section === 'cobertura' ? ' is-titleless' : ''}`}>
           <button
             type="button"
             className="painel-menu-toggle"
@@ -500,9 +454,11 @@ function Painel() {
             <span />
             <span />
           </button>
-          <div>
-            <h1>{currentNav.label}</h1>
-          </div>
+          {section !== 'cobertura' ? (
+            <div>
+              <h1>{currentNav.label}</h1>
+            </div>
+          ) : null}
           {section === 'cotacoes' && canUseCotacao ? (
             <Link to="/cotacao" className="painel-section-cta">
               Nova cotação
@@ -551,8 +507,6 @@ function Painel() {
               resumo={resumo}
             />
           )}
-
-          {!isRejected && section === 'cidades' && <PainelCidades />}
 
           {!isRejected && section === 'cadastro' && profile && (
             <div className="painel-section">

@@ -158,7 +158,6 @@ function CidadesAtendidas() {
   const [ufDestino, setUfDestino] = useState('')
   const [cidadeDestino, setCidadeDestino] = useState('')
   const [loading, setLoading] = useState(false)
-  const [loadingLista, setLoadingLista] = useState(false)
   const [erro, setErro] = useState('')
   const [consulta, setConsulta] = useState(null)
   const [cacheUf, setCacheUf] = useState({})
@@ -181,35 +180,19 @@ function CidadesAtendidas() {
   const sugestoesOrigem = cacheUf[ufOrigem]?.cidades || []
   const sugestoesDestino = cacheUf[ufDestino]?.cidades || []
 
-  const ufLista = mapaFoco === 'origem' ? ufOrigem : ufDestino
-  const cidadeListaFiltro = mapaFoco === 'origem' ? cidadeOrigem : cidadeDestino
-  const cidadesDaUf = cacheUf[ufLista]?.cidades || []
-  const carregandoLista = Boolean(ufLista && !cacheUfValido(cacheUf[ufLista]) && loadingLista)
-
-  const cidadesFiltradas = useMemo(() => {
-    const termo = String(cidadeListaFiltro || '').trim().toLocaleLowerCase('pt-BR')
-    if (!termo) return cidadesDaUf
-    return cidadesDaUf.filter((item) => cityName(item).toLocaleLowerCase('pt-BR').includes(termo))
-  }, [cidadesDaUf, cidadeListaFiltro])
-
   const ufsSelect = useMemo(() => {
     const base = ufsDisponiveis.length ? ufsDisponiveis : UFS_ATENDIDAS
     return base
   }, [ufsDisponiveis])
 
-  async function carregarUf(proximaUf, { comLoadingLista = false } = {}) {
+  async function carregarUf(proximaUf) {
     if (!proximaUf) return null
     const cached = cacheUf[proximaUf]
     if (cacheUfValido(cached)) return cached
 
-    if (comLoadingLista) setLoadingLista(true)
-    try {
-      const data = await buscarCidadesPorUf(proximaUf)
-      setCacheUf((prev) => ({ ...prev, [proximaUf]: data }))
-      return data
-    } finally {
-      if (comLoadingLista) setLoadingLista(false)
-    }
+    const data = await buscarCidadesPorUf(proximaUf)
+    setCacheUf((prev) => ({ ...prev, [proximaUf]: data }))
+    return data
   }
 
   async function pesquisar({ mostrarLoading = true } = {}) {
@@ -282,7 +265,6 @@ function CidadesAtendidas() {
     setConsulta(null)
     setErro('')
     setLoading(false)
-    setLoadingLista(false)
     setMapaFoco('destino')
     setPainelCidade(null)
   }
@@ -309,19 +291,10 @@ function CidadesAtendidas() {
     }
 
     try {
-      await carregarUf(proximaUf, { comLoadingLista: true })
-      requestAnimationFrame(() => {
-        document.getElementById('cidades-lista-uf')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      })
+      await carregarUf(proximaUf)
     } catch (error) {
       setErro(error.message || 'Não foi possível carregar as cidades da UF.')
     }
-  }
-
-  function escolherCidadeLista(nome) {
-    const formatado = formatCityName(nome)
-    if (mapaFoco === 'origem') setCidadeOrigem(formatado)
-    else setCidadeDestino(formatado)
   }
 
   const selectedMapUf = mapaFoco === 'origem' ? ufOrigem : ufDestino
@@ -350,7 +323,7 @@ function CidadesAtendidas() {
                           setConsulta(null)
                           setMapaFoco('origem')
                           setPainelCidade(null)
-                          if (e.target.value) carregarUf(e.target.value, { comLoadingLista: true }).catch(() => {})
+                          if (e.target.value) carregarUf(e.target.value).catch(() => {})
                         }}
                       >
                         <option value="">UF</option>
@@ -388,7 +361,7 @@ function CidadesAtendidas() {
                           setConsulta(null)
                           setMapaFoco('destino')
                           setPainelCidade(null)
-                          if (e.target.value) carregarUf(e.target.value, { comLoadingLista: true }).catch(() => {})
+                          if (e.target.value) carregarUf(e.target.value).catch(() => {})
                         }}
                       >
                         <option value="">UF</option>
@@ -427,102 +400,52 @@ function CidadesAtendidas() {
           </div>
         </section>
 
-        {(consulta || ufLista) && (
+        {consulta && (
           <section className="cidades-wrap cidades-resultado" id="cidades-resultado">
-            {consulta ? (
-              <div id="cidades-lista-uf" className={`cidades-status cidades-status-unificado ${statusClass}`}>
-                {consulta.tipo !== 'direta' ? (
-                  <div className="cidades-status-titulo">
-                    <strong>{statusTitulo}</strong>
-                  </div>
+            <div className={`cidades-status cidades-status-unificado ${statusClass}`}>
+              {consulta.tipo !== 'direta' ? (
+                <div className="cidades-status-titulo">
+                  <strong>{statusTitulo}</strong>
+                </div>
+              ) : null}
+
+              <div className={`cidades-selecionadas-grid${consulta.atendida ? ' has-cta' : ''}`}>
+                <div className="cidades-selecionadas-card">
+                  <span className="cidades-lista-papel">Saída</span>
+                  <strong>
+                    {formatCityName(consulta.origem.cidade)}
+                    <span> / {consulta.origem.uf}</span>
+                  </strong>
+                </div>
+                <div className="cidades-selecionadas-seta" aria-hidden="true">
+                  →
+                </div>
+                <div className="cidades-selecionadas-card">
+                  <span className="cidades-lista-papel">Destino</span>
+                  <strong>
+                    {formatCityName(consulta.destino.cidade)}
+                    <span> / {consulta.destino.uf}</span>
+                  </strong>
+                </div>
+                {consulta.atendida ? (
+                  <Link to="/cotacao" className="cidades-cta cidades-cta-inline">
+                    Fazer cotação
+                  </Link>
                 ) : null}
-
-                <div className={`cidades-selecionadas-grid${consulta.atendida ? ' has-cta' : ''}`}>
-                  <div className="cidades-selecionadas-card">
-                    <span className="cidades-lista-papel">Saída</span>
-                    <strong>
-                      {formatCityName(consulta.origem.cidade)}
-                      <span> / {consulta.origem.uf}</span>
-                    </strong>
-                  </div>
-                  <div className="cidades-selecionadas-seta" aria-hidden="true">
-                    →
-                  </div>
-                  <div className="cidades-selecionadas-card">
-                    <span className="cidades-lista-papel">Destino</span>
-                    <strong>
-                      {formatCityName(consulta.destino.cidade)}
-                      <span> / {consulta.destino.uf}</span>
-                    </strong>
-                  </div>
-                  {consulta.atendida ? (
-                    <Link to="/cotacao" className="cidades-cta cidades-cta-inline">
-                      Fazer cotação
-                    </Link>
-                  ) : null}
-                </div>
-
-                {consulta.tipo === 'nao' && (
-                  <p className="cidades-map-note">
-                    {!consulta.origem.encontrada && !consulta.destino.encontrada
-                      ? 'Saída e destino não encontrados na cobertura cadastrada.'
-                      : !consulta.origem.encontrada
-                        ? 'Cidade de saída não encontrada na cobertura.'
-                        : !consulta.destino.encontrada
-                          ? 'Cidade de destino não encontrada na cobertura.'
-                          : 'A Lopesul não atende esta combinação de saída e destino.'}
-                  </p>
-                )}
               </div>
-            ) : (
-              ufLista && (
-                <div id="cidades-lista-uf">
-                  <div className="cidades-resultado-head">
-                    <div>
-                      <p className="cidades-map-label">
-                        Cidades de {mapaFoco === 'origem' ? 'saída' : 'destino'}
-                      </p>
-                      <h2>
-                        {carregandoLista
-                          ? `Carregando cidades em ${ufLista}…`
-                          : `${cidadesDaUf.length} cidade${cidadesDaUf.length === 1 ? '' : 's'} em ${ufLista}`}
-                      </h2>
-                    </div>
-                  </div>
 
-                  {carregandoLista ? (
-                    <p className="cidades-map-note">Buscando cobertura cadastrada…</p>
-                  ) : cidadesFiltradas.length === 0 ? (
-                    <p className="cidades-map-note">
-                      {cidadesDaUf.length === 0
-                        ? 'Nenhuma cidade cadastrada para esta UF.'
-                        : 'Nenhuma cidade encontrada com esse filtro.'}
-                    </p>
-                  ) : (
-                    <ul className="cidades-lista">
-                      {cidadesFiltradas.map((item) => {
-                        const nome = cityName(item)
-                        const siglas = citySiglas(item)
-                        const selecionada =
-                          String(cidadeListaFiltro || '').trim().toLocaleLowerCase('pt-BR') ===
-                          nome.toLocaleLowerCase('pt-BR')
-                        return (
-                          <li key={`${ufLista}-${nome}-${siglas.join('-')}`} className={selecionada ? 'is-match' : ''}>
-                            <button
-                              type="button"
-                              className="cidades-lista-btn"
-                              onClick={() => escolherCidadeLista(nome)}
-                            >
-                              <span className="cidades-lista-nome">{formatCityName(nome)}</span>
-                            </button>
-                          </li>
-                        )
-                      })}
-                    </ul>
-                  )}
-                </div>
-              )
-            )}
+              {consulta.tipo === 'nao' && (
+                <p className="cidades-map-note">
+                  {!consulta.origem.encontrada && !consulta.destino.encontrada
+                    ? 'Saída e destino não encontrados na cobertura cadastrada.'
+                    : !consulta.origem.encontrada
+                      ? 'Cidade de saída não encontrada na cobertura.'
+                      : !consulta.destino.encontrada
+                        ? 'Cidade de destino não encontrada na cobertura.'
+                        : 'A Lopesul não atende esta combinação de saída e destino.'}
+                </p>
+              )}
+            </div>
           </section>
         )}
       </div>
