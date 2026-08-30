@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import './PainelCotacoes.css'
 
@@ -38,6 +38,19 @@ function formatPrazo(value) {
   return text
 }
 
+function extrairColeta(item) {
+  const req = item.payload?.request || {}
+  const res = item.payload?.response || {}
+  return {
+    numero: item.numero_coleta || res.numeroColeta || '',
+    solicitante: item.solicitante || req.solicitante || '',
+    cotacao: req.cotacao || '',
+    transportadora: req.transportadoraNome || req.transportadoraId || '',
+    nota: req.numeroNF || req.nroPedido || '',
+    pagamento: req.tipoPagamento === 'D' ? 'Destino' : req.tipoPagamento === 'O' ? 'Origem' : '',
+  }
+}
+
 function extrairDetalhes(item) {
   const req = item.payload?.request || {}
   const res = item.payload?.response || {}
@@ -57,18 +70,26 @@ function extrairDetalhes(item) {
 }
 
 function PainelCotacoes({
-  canUseCotacao,
   isApproved,
   busyResumo,
   resumo,
 }) {
+  const location = useLocation()
+  const navigate = useNavigate()
+  const aba = new URLSearchParams(location.search).get('aba') === 'coletas' ? 'coletas' : 'cotacoes'
   const [itens, setItens] = useState([])
+  const [coletas, setColetas] = useState([])
   const [busy, setBusy] = useState(false)
   const [erro, setErro] = useState('')
+
+  function abrirAba(proxima) {
+    navigate(proxima === 'coletas' ? '/painel/cotacoes?aba=coletas' : '/painel/cotacoes', { replace: true })
+  }
 
   useEffect(() => {
     if (!isApproved) {
       setItens([])
+      setColetas([])
       return undefined
     }
 
@@ -76,20 +97,39 @@ function PainelCotacoes({
     setBusy(true)
     setErro('')
 
-    supabase
-      .from('cotacoes')
-      .select(
-        'id, created_at, cep_origem, cep_destino, total_frete, prazo, quantidade, peso, valor_nf, cnpj_pagador, cnpj_remetente, cnpj_destinatario, payload',
-      )
-      .order('created_at', { ascending: false })
-      .limit(50)
+    const consulta =
+      aba === 'coletas'
+        ? supabase
+            .from('coletas')
+            .select(
+              'id, created_at, numero_coleta, solicitante, cep_coleta, cep_entrega, quantidade, peso, limite_coleta, payload',
+            )
+            .order('created_at', { ascending: false })
+            .limit(50)
+        : supabase
+            .from('cotacoes')
+            .select(
+              'id, created_at, cep_origem, cep_destino, total_frete, prazo, quantidade, peso, valor_nf, cnpj_pagador, cnpj_remetente, cnpj_destinatario, payload',
+            )
+            .order('created_at', { ascending: false })
+            .limit(50)
+
+    consulta
       .then(({ data, error }) => {
         if (!active) return
         if (error) throw error
-        setItens(data || [])
+        if (aba === 'coletas') setColetas(data || [])
+        else setItens(data || [])
       })
       .catch((error) => {
-        if (active) setErro(error.message || 'Não foi possível carregar as cotações.')
+        if (active) {
+          setErro(
+            error.message ||
+              (aba === 'coletas'
+                ? 'Não foi possível carregar as coletas.'
+                : 'Não foi possível carregar as cotações.'),
+          )
+        }
       })
       .finally(() => {
         if (active) setBusy(false)
@@ -98,30 +138,29 @@ function PainelCotacoes({
     return () => {
       active = false
     }
-  }, [isApproved])
+  }, [isApproved, aba])
 
   return (
     <div className="painel-section">
-      <header className="painel-section-head">
-        <div>
-          <h2>Frete e coleta</h2>
-        </div>
-        {canUseCotacao ? (
-          <Link to="/cotacao" className="painel-section-cta">
-            Nova cotação
-          </Link>
-        ) : null}
-      </header>
-
       <section className="painel-cards painel-cards-stats" aria-label="Resumo de cotações">
-        <article className="painel-card is-stat is-active-stat" aria-current="true">
+        <button
+          type="button"
+          className={`painel-card is-stat is-clickable${aba === 'cotacoes' ? ' is-active-stat' : ''}`}
+          aria-current={aba === 'cotacoes' ? 'true' : undefined}
+          onClick={() => abrirAba('cotacoes')}
+        >
           <span>Cotações</span>
           <strong>{isApproved ? (busyResumo ? '…' : resumo.cotacoes) : '—'}</strong>
-        </article>
-        <article className="painel-card is-stat">
+        </button>
+        <button
+          type="button"
+          className={`painel-card is-stat is-clickable${aba === 'coletas' ? ' is-active-stat' : ''}`}
+          aria-current={aba === 'coletas' ? 'true' : undefined}
+          onClick={() => abrirAba('coletas')}
+        >
           <span>Coletas</span>
           <strong>{isApproved ? (busyResumo ? '…' : resumo.coletas) : '—'}</strong>
-        </article>
+        </button>
         <article className="painel-card is-stat">
           <span>Último frete</span>
           <strong>{isApproved ? (busyResumo ? '…' : formatMoney(resumo.ultimoFrete)) : '—'}</strong>
@@ -129,13 +168,10 @@ function PainelCotacoes({
         </article>
       </section>
 
-      {isApproved ? (
+      {isApproved && aba === 'cotacoes' ? (
         <section className="cotacoes-hist" aria-label="Lista de cotações">
           <div className="cotacoes-hist-head">
             <h3>Histórico de cotações</h3>
-            <span>
-              {busy ? 'Carregando…' : `${itens.length} registro(s) recentes`}
-            </span>
           </div>
 
           {erro ? (
@@ -190,6 +226,74 @@ function PainelCotacoes({
                     </div>
                     <div className="cotacoes-hist-meta">
                       <span>Prazo: {formatPrazo(item.prazo)}</span>
+                      {item.quantidade != null ? <span>Vol: {item.quantidade}</span> : null}
+                      {item.peso != null ? <span>Peso: {item.peso} kg</span> : null}
+                    </div>
+                  </li>
+                )
+              })}
+            </ul>
+          ) : null}
+        </section>
+      ) : null}
+
+      {isApproved && aba === 'coletas' ? (
+        <section className="cotacoes-hist" aria-label="Lista de coletas">
+          <div className="cotacoes-hist-head">
+            <h3>Histórico de coletas</h3>
+          </div>
+
+          {erro ? (
+            <p className="auth-alert" role="alert">
+              {erro}
+            </p>
+          ) : null}
+
+          {!busy && !erro && coletas.length === 0 ? (
+            <p className="painel-muted">Nenhuma coleta solicitada nesta conta ainda.</p>
+          ) : null}
+
+          {coletas.length > 0 ? (
+            <ul className="cotacoes-hist-lista">
+              {coletas.map((item) => {
+                const det = extrairColeta(item)
+                return (
+                  <li key={item.id}>
+                    <div className="cotacoes-hist-main">
+                      <div className="cotacoes-hist-titulo">
+                        <strong>
+                          {det.numero ? `Coleta nº ${det.numero}` : 'Coleta'}
+                        </strong>
+                        {det.transportadora ? (
+                          <em className="cotacoes-hist-carrier">{det.transportadora}</em>
+                        ) : null}
+                      </div>
+                      <span>{formatDate(item.created_at)}</span>
+                    </div>
+
+                    <dl className="cotacoes-hist-empresas">
+                      <div>
+                        <dt>Solicitante</dt>
+                        <dd>{det.solicitante || '—'}</dd>
+                      </div>
+                      <div>
+                        <dt>Cotação</dt>
+                        <dd>{det.cotacao || '—'}</dd>
+                      </div>
+                      <div>
+                        <dt>NF</dt>
+                        <dd>{det.nota || '—'}</dd>
+                      </div>
+                    </dl>
+
+                    <div className="cotacoes-hist-rota">
+                      <span>{formatCep(item.cep_coleta)}</span>
+                      <span aria-hidden="true">→</span>
+                      <span>{formatCep(item.cep_entrega)}</span>
+                    </div>
+                    <div className="cotacoes-hist-meta">
+                      {item.limite_coleta ? <span>Limite: {formatDate(item.limite_coleta)}</span> : null}
+                      {det.pagamento ? <span>Pagamento: {det.pagamento}</span> : null}
                       {item.quantidade != null ? <span>Vol: {item.quantidade}</span> : null}
                       {item.peso != null ? <span>Peso: {item.peso} kg</span> : null}
                     </div>

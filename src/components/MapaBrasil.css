@@ -18,7 +18,7 @@
 }
 
 .mapa-brasil #svg-map path {
-  fill: var(--brand);
+  fill: var(--brand-deep);
 }
 
 .mapa-brasil #svg-map text {
@@ -34,15 +34,15 @@
 
 .mapa-brasil #svg-map a:hover path,
 .mapa-brasil #svg-map a.is-selected path {
-  fill: var(--brand-deep) !important;
-  filter: drop-shadow(0 0 6px rgba(9, 61, 144, 0.25));
+  fill: var(--brand) !important;
+  filter: drop-shadow(0 0 6px rgba(72, 213, 255, 0.35));
 }
 
 .mapa-brasil #svg-map .circle {
-  fill: #f80050;
+  fill: var(--brand-deep);
 }
 
 .mapa-brasil #svg-map a:hover .circle,
 .mapa-brasil #svg-map a.is-selected .circle {
-  fill: #003399 !important;
+  fill: var(--brand) !important;
 }

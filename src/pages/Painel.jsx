@@ -127,10 +127,14 @@ function PainelInicio({
             <span>Cotações</span>
             <strong>{busy ? '…' : resumo.cotacoes}</strong>
           </button>
-          <article className="painel-card is-stat">
+          <button
+            type="button"
+            className="painel-card is-stat is-clickable"
+            onClick={() => onNavigate('cotacoes', 'aba=coletas')}
+          >
             <span>Coletas</span>
             <strong>{busy ? '…' : resumo.coletas}</strong>
-          </article>
+          </button>
           <article className="painel-card is-stat">
             <span>Último frete</span>
             <strong>{busy ? '…' : formatMoney(resumo.ultimoFrete)}</strong>
@@ -391,8 +395,9 @@ function Painel() {
     return <Navigate to="/painel" replace />
   }
 
-  function goSection(id) {
-    navigate(id === 'inicio' ? '/painel' : `/painel/${id}`)
+  function goSection(id, query) {
+    const path = id === 'inicio' ? '/painel' : `/painel/${id}`
+    navigate(query ? `${path}?${query}` : path)
   }
 
   function fecharAvisoCadastro() {
@@ -498,6 +503,11 @@ function Painel() {
           <div>
             <h1>{currentNav.label}</h1>
           </div>
+          {section === 'cotacoes' && canUseCotacao ? (
+            <Link to="/cotacao" className="painel-section-cta">
+              Nova cotação
+            </Link>
+          ) : null}
         </header>
 
         <div className="painel-content">
@@ -536,7 +546,6 @@ function Painel() {
 
           {!isRejected && section === 'cotacoes' && (
             <PainelCotacoes
-              canUseCotacao={canUseCotacao}
               isApproved={isApproved}
               busyResumo={busy}
               resumo={resumo}

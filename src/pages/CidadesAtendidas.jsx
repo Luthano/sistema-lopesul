@@ -26,24 +26,6 @@ function intersecaoSiglas(a = [], b = []) {
   return a.filter((sigla) => setB.has(sigla))
 }
 
-function nomePorSigla(sigla) {
-  if (sigla === 'LS') return 'Lopesul'
-  return sigla
-}
-
-function SiglasBadges({ siglas }) {
-  if (!siglas?.length) return null
-  return (
-    <span className="cidades-siglas" aria-label={`Atendida por ${siglas.join(' e ')}`}>
-      {siglas.map((sigla) => (
-        <span key={sigla} className={`cidades-sigla is-${sigla.toLowerCase()}`} title={nomePorSigla(sigla)}>
-          {sigla}
-        </span>
-      ))}
-    </span>
-  )
-}
-
 function filtrarCidades(lista = [], termo = '') {
   const t = String(termo).trim().toLocaleLowerCase('pt-BR')
   if (!t) return lista
@@ -89,9 +71,8 @@ function CidadeCampo({
 
   return (
     <label className="cidades-field-wide cidades-campo-cidade">
-      <span>{label}</span>
       <div className="cidades-campo-cidade-wrap">
-        <button type="button" className="cidades-campo-cidade-trigger" onClick={abrir}>
+        <button type="button" className="cidades-campo-cidade-trigger" aria-label={label} onClick={abrir}>
           <span className={value ? '' : 'is-placeholder'}>{value || placeholder}</span>
           <span className="cidades-campo-cidade-hint" aria-hidden="true">
             ▾
@@ -156,7 +137,6 @@ function CidadeCampo({
                             }}
                           >
                             <span>{formatado}</span>
-                            <SiglasBadges siglas={siglas} />
                           </button>
                         )
                       })
@@ -361,8 +341,8 @@ function CidadesAtendidas() {
                   <legend>Saída</legend>
                   <div className="cidades-rota-fields">
                     <label>
-                      <span>UF</span>
                       <select
+                        aria-label="UF de saída"
                         value={ufOrigem}
                         onFocus={() => setMapaFoco('origem')}
                         onChange={(e) => {
@@ -399,8 +379,8 @@ function CidadesAtendidas() {
                   <legend>Destino</legend>
                   <div className="cidades-rota-fields">
                     <label>
-                      <span>UF</span>
                       <select
+                        aria-label="UF de destino"
                         value={ufDestino}
                         onFocus={() => setMapaFoco('destino')}
                         onChange={(e) => {
@@ -451,14 +431,13 @@ function CidadesAtendidas() {
           <section className="cidades-wrap cidades-resultado" id="cidades-resultado">
             {consulta ? (
               <div id="cidades-lista-uf" className={`cidades-status cidades-status-unificado ${statusClass}`}>
-                <div className="cidades-status-titulo">
-                  <strong>{statusTitulo}</strong>
-                  {consulta.atendida && consulta.siglas?.length ? (
-                    <SiglasBadges siglas={consulta.siglas} />
-                  ) : null}
-                </div>
+                {consulta.tipo !== 'direta' ? (
+                  <div className="cidades-status-titulo">
+                    <strong>{statusTitulo}</strong>
+                  </div>
+                ) : null}
 
-                <div className="cidades-selecionadas-grid">
+                <div className={`cidades-selecionadas-grid${consulta.atendida ? ' has-cta' : ''}`}>
                   <div className="cidades-selecionadas-card">
                     <span className="cidades-lista-papel">Saída</span>
                     <strong>
@@ -476,6 +455,11 @@ function CidadesAtendidas() {
                       <span> / {consulta.destino.uf}</span>
                     </strong>
                   </div>
+                  {consulta.atendida ? (
+                    <Link to="/cotacao" className="cidades-cta cidades-cta-inline">
+                      Fazer cotação
+                    </Link>
+                  ) : null}
                 </div>
 
                 {consulta.tipo === 'nao' && (
@@ -489,12 +473,6 @@ function CidadesAtendidas() {
                           : 'A Lopesul não atende esta combinação de saída e destino.'}
                   </p>
                 )}
-
-                {consulta.atendida ? (
-                  <Link to="/cotacao" className="cidades-cta cidades-cta-inline">
-                    Fazer cotação
-                  </Link>
-                ) : null}
               </div>
             ) : (
               ufLista && (
@@ -536,7 +514,6 @@ function CidadesAtendidas() {
                               onClick={() => escolherCidadeLista(nome)}
                             >
                               <span className="cidades-lista-nome">{formatCityName(nome)}</span>
-                              <SiglasBadges siglas={siglas} />
                             </button>
                           </li>
                         )

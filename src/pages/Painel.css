@@ -167,6 +167,10 @@
   padding: 18px 24px 8px;
 }
 
+.painel-main-bar .painel-section-cta {
+  margin-left: auto;
+}
+
 .painel-main-bar h1 {
   margin: 0;
   font-family: var(--font-display, inherit);
@@ -387,6 +391,20 @@ a.painel-card {
   background: var(--painel-deep);
   color: #fff;
   cursor: default;
+}
+
+.painel-card.is-stat.is-clickable {
+  cursor: pointer;
+}
+
+.painel-card.is-stat.is-clickable:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px rgba(6, 40, 85, 0.28);
+}
+
+.painel-card.is-stat.is-active-stat {
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.28);
 }
 
 .painel-card.is-stat span,
