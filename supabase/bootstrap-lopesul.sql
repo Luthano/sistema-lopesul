@@ -120,15 +120,17 @@ security definer
 set search_path = public
 as $$
 declare
-  master_email text := 'luthanogomes@gmail.com';
+  master_emails text[] := array['luthanogomes@gmail.com', 'michael@lopesul.com'];
+  is_master_email boolean;
 begin
+  is_master_email := lower(coalesce(new.email, '')) = any (master_emails);
   insert into public.profiles (id, email, status, role, approved_at)
   values (
     new.id,
     lower(coalesce(new.email, '')),
-    case when lower(coalesce(new.email, '')) = master_email then 'approved' else 'pending' end,
-    case when lower(coalesce(new.email, '')) = master_email then 'master' else 'user' end,
-    case when lower(coalesce(new.email, '')) = master_email then now() else null end
+    case when is_master_email then 'approved' else 'pending' end,
+    case when is_master_email then 'master' else 'user' end,
+    case when is_master_email then now() else null end
   )
   on conflict (id) do nothing;
 
@@ -145,9 +147,9 @@ insert into public.profiles (id, email, status, role, approved_at)
 select
   id,
   lower(coalesce(email, '')),
-  case when lower(coalesce(email, '')) = 'luthanogomes@gmail.com' then 'approved' else 'pending' end,
-  case when lower(coalesce(email, '')) = 'luthanogomes@gmail.com' then 'master' else 'user' end,
-  case when lower(coalesce(email, '')) = 'luthanogomes@gmail.com' then now() else null end
+  case when lower(coalesce(email, '')) in ('luthanogomes@gmail.com', 'michael@lopesul.com') then 'approved' else 'pending' end,
+  case when lower(coalesce(email, '')) in ('luthanogomes@gmail.com', 'michael@lopesul.com') then 'master' else 'user' end,
+  case when lower(coalesce(email, '')) in ('luthanogomes@gmail.com', 'michael@lopesul.com') then now() else null end
 from auth.users
 on conflict (id) do update
 set
